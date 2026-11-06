@@ -147,12 +147,37 @@
 
 ## Verificación
 
-- Tests / evidencia:
-- Resultado:
+- Tests / evidencia (contra el DoD de la constitución):
+  1. **Suite en verde con los tests nuevos:** `npm test` → **17/17** (4
+     archivos). Literal: "Test Files 4 passed (4) · Tests 17 passed (17)".
+  2. **Archivo real contra la app viva** (localhost:3000, datos de
+     desarrollo): descargado y parseado con parser RFC 4180 (Python `csv`) —
+     BOM `EF BB BF` ✓, encabezado exacto
+     `fecha,tipo,monto,categoria,descripcion` ✓, todas las filas con 5
+     columnas ✓, acentos intactos («Alimentación») ✓, monto decimal `75.5`
+     tal cual ✓.
+  3. **Excel real (COM automation):** el archivo descargado se abrió en
+     Excel → **5 columnas, 3 filas** (encabezado + 2 movimientos), A1 =
+     «fecha», D2 = «Alimentación» (acento íntegro), C2 = `75.5` leído como
+     número. T006 cumplido sin abrir Excel a mano.
+  4. **Camino de error (AC5):** verificado en ronda de fixes con Edge
+     headless pulsando el botón con fetch fallido → error visible
+     (`display=block`, `offsetHeight=18`), sin descarga.
+  5. **Sin secretos ni datos en el diff:** `git diff main...HEAD` escaneado —
+     única coincidencia es el `DATA_DIR` temporal de los tests (esperado);
+     `data/` no viaja en el diff.
+  6. **Revisión sin bloqueantes:** APPROVE WITH NITS, 6/6 hallazgos fixed,
+     0 abiertos (ver §Revisión).
+- Resultado: **PASS** — la feature cumple los 5 criterios de aceptación de la
+  spec con evidencia ejecutable. Nota honesta: la «verificación manual» de
+  T006 se ejecutó por automatización (Edge headless + Excel COM) en vez de a
+  mano, por el autopilot; la evidencia queda registrada arriba y el dueño
+  puede repetirla abriendo http://localhost:3000 y pulsando «Exportar CSV».
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 23:08:42 UTC · Fin: 2026-11-06 23:11:06 UTC · Duración: ~2.5 min
+- Tokens: input 7,576 · caché leída 1,181,312 · output 8,008 · Costo: n/d (tabla de precios GLM pendiente)
+- Intervenciones humanas: 0 (autopilot)
 
 ## Ship
 
@@ -172,6 +197,6 @@
 | Tasks | ~3.5 min | in 92,792 · caché 1,398,784 · out 6,122 | 0 | 6 tareas; riesgo tier 1 (1 revisor) |
 | Desarrollo | ~7 min | in 124,072 · caché 3,209,472 · out 19,747 | 0 | TDD rojo→verde; 16/16 verde; verificado en app real |
 | Revisión | ~26 min | in 126,511 · caché 9,393,408 · out 56,007 · subagentes 134,940 | 0 | 2 rondas; 6 hallazgos, 6 fixed; APPROVE WITH NITS |
-| Verificación | | | | |
+| Verificación | ~2.5 min | in 7,576 · caché 1,181,312 · out 8,008 | 0 | PASS: 17/17, RFC 4180, Excel real 5 columnas |
 | Ship | | | | |
 | **Total** | | | | |
