@@ -23,7 +23,7 @@ la feature 001 por el flujo SDD; se actualiza a medida que se cierra cada punto.
 - [x] `REVIEW.md` en la raíz (qué cuenta como fallo, nit cap, rutas a saltar)
 - [x] Knowledge map → `02-DOCS/wiki/index.md`
 - [x] **Constitución ratificada v1.0.0** (2026-11-06, 11 principios + DoD)
-- [ ] Commit del montaje completo (harness + documentación) y push a GitHub
+- [x] Commit del montaje completo y push a GitHub (`bf46f29`, 2026-11-06)
 
 ## Feature 001 — Exportar a CSV
 
