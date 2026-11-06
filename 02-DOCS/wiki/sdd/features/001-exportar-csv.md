@@ -181,11 +181,21 @@
 
 ## Ship
 
-- PR: · Merge: · Cierre:
+- PR: [#1 «✨ Feature 001 — Exportar movimientos a CSV»](https://github.com/P1er0uni/cuentas-personales/pull/1)
+- Merge: **MERGED** el 2026-11-06 23:26:54 UTC (merge commit, historial por
+  fases preservado) — auto-merge autorizado: verificación PASS + 0 hallazgos
+  bloqueantes.
+- Cierre: rama empujada con el worklog del ciclo; main actualizado y
+  empujado (push a main autorizado expresamente por el dueño para esta
+  corrida). Worklog: `02-DOCS/raw/worklog/2026-11-06-001-exportar-csv.md`.
+- Incidente del paso: dos cortes transitorios del clasificador de permisos
+  del harness de agentes (no del proyecto) demoraron el merge ~15 min; se
+  resolvió esperando y reintentando. 0 intervenciones humanas.
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 23:12:09 UTC · Fin: 2026-11-06 23:32:17 UTC · Duración: ~20 min (≈15 por cortes del clasificador)
+- Tokens: input 27,001 · caché leída 5,886,528 · output 15,643 · Costo: n/d (tabla de precios GLM pendiente)
+- Intervenciones humanas: 0 (autopilot)
 
 ## Métricas
 
@@ -198,5 +208,10 @@
 | Desarrollo | ~7 min | in 124,072 · caché 3,209,472 · out 19,747 | 0 | TDD rojo→verde; 16/16 verde; verificado en app real |
 | Revisión | ~26 min | in 126,511 · caché 9,393,408 · out 56,007 · subagentes 134,940 | 0 | 2 rondas; 6 hallazgos, 6 fixed; APPROVE WITH NITS |
 | Verificación | ~2.5 min | in 7,576 · caché 1,181,312 · out 8,008 | 0 | PASS: 17/17, RFC 4180, Excel real 5 columnas |
-| Ship | | | | |
-| **Total** | | | | |
+| Ship | ~20 min (≈15 por cortes del clasificador) | in 27,001 · caché 5,886,528 · out 15,643 | 0 | PR #1 merged; main empujado (autorizado) |
+| **Total** | ~66 min de trabajo efectivo (21:56→23:32 con esperas) | in 432,178 · caché 26,086,464 · out 131,640 · subagentes 134,940 | 1 (elección de la feature) | Primer ciclo SDD completo; 17/17 verde; 6 hallazgos de revisión cerrados |
+
+> Nota del total: los tokens cubren desde el registro de ingreso (21:56 UTC)
+> hasta el push a main. «Subagentes» = 4 agentes de revisión/verificación
+> (tokens totales reportados por el harness, sin desglose in/out). Costo
+> global: n/d hasta tener la tabla de precios GLM.
