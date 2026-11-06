@@ -39,13 +39,20 @@
 
 ## Plan
 
-- Resumen del enfoque técnico:
-- Artefactos: `specs/001-exportar-csv/plan.md`
-- Desviaciones / decisiones:
+- Resumen del enfoque técnico: generador CSV **puro** (`src/csv.js`: BOM, CRLF,
+  RFC 4180, anti-formula-injection) + ruta `GET /api/movimientos/csv` que usa
+  la misma query que la tabla + botón en la UI que descarga vía blob y muestra
+  errores. Sin cambios de esquema. Estrategia de pruebas: unit para el
+  generador, integration para la ruta, manual registrada para Excel.
+- Artefactos: `02-DOCS/wiki/sdd/plans/001-exportar-csv.md`
+- Desviaciones / decisiones: CSV **en el servidor** (no en el navegador) por
+  testabilidad; sanitización de formula injection desde el plan. Ambas en
+  `decisions.md`.
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 22:20:27 UTC · Fin: 2026-11-06 22:25:12 UTC · Duración: ~5 min
+- Tokens: input 25,813 · caché leída 3,564,480 · output 17,174 · Costo: n/d (tabla de precios GLM pendiente)
+- Intervenciones humanas: 0 (autopilot)
 
 ## Tasks
 

@@ -12,3 +12,5 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
 | 2026-11-06 | Barra de calidad | tests / tests+linter | **Tests Vitest en verde** | Suficiente para el piloto; linter sería enmienda |
 | 2026-11-06 | Reglas de documentación | — | **Aprobadas** (`REGLAS-DOCUMENTACION.md`): un doc por feature, cierre de paso documentado y commiteado, métricas de tiempos/tokens/costo por paso (el agente los obtiene de las transcripciones) | Trazabilidad del método antes de escalar |
 | 2026-11-06 | Feature 001 | presupuestos / filtro por mes / edición / exportar CSV | **Exportar a CSV** | Primer ciclo SDD corto y medible |
+| 2026-11-06 | Dónde se genera el CSV (001) | en el navegador con el JSON / en el servidor con ruta nueva | **En el servidor** (`GET /api/movimientos/csv` + generador puro) | Un solo generador testeable (unit + integration); el navegador solo descarga |
+| 2026-11-06 | Formula injection en CSV (001) | ignorar / sanitizar | **Sanitizar**: prefijar `'` en celdas que empiezan con `= + - @` | Práctica estándar; evita que Excel ejecute fórmulas desde datos del usuario |
