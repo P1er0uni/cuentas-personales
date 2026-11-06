@@ -146,3 +146,21 @@ quedan prefijadas con `'`.
 
 Decisiones añadidas a `decisions.md`: CSV generado en servidor; mitigación de
 formula injection incluida desde el plan.
+
+## 8. Tasks
+
+> Riesgo del conjunto (rsc risk sobre las rutas esperadas): **tier 1** — 1
+> revisor, sin aprobación humana obligatoria (el dueño ya autorizó el
+> auto-merge condicionado a verify).
+
+| ID | [P] | Título | Done-check (literal) | Depende de | Traza | Riesgo |
+|---|---|---|---|---|---|---|
+| T001 | [P] | Escribir tests unit del generador CSV (`test/csv.test.js`) | `npx vitest run test/csv.test.js` → rojo con `src/csv.js` ausente; casos: encabezado exacto, CRLF, BOM, entrecomillado RFC 4180, formula injection, vacío → solo encabezado | — | AC3, AC4 | 1 |
+| T002 | | Implementar `src/csv.js` (`generarCsv`) hasta verde | `npx vitest run test/csv.test.js` → verde | T001 | AC3, AC4 | 1 |
+| T003 | [P] | Escribir tests integration de la ruta (`test/csv-api.test.js`) | `npx vitest run test/csv-api.test.js` → rojo sin la ruta; casos: body exacto con datos sembrados (orden fecha DESC), vacío → solo encabezado, headers `text/csv` + attachment, BOM | — | AC1, AC2 | 1 |
+| T004 | | Implementar `GET /api/movimientos/csv` en `src/app.js` hasta verde | `npx vitest run test/csv-api.test.js` → verde | T002, T003 | AC1, AC2 | 1 |
+| T005 | | Añadir botón «Exportar CSV» + manejo de error en `public/index.html` | `curl -s http://localhost:3000/` contiene «Exportar CSV» Y descarga manual funciona (blob) Y con servidor caído muestra error visible | T004 | AC5 | 1 |
+| T006 | | Verificación manual en navegador + Excel, registrada en el doc de la feature | Doc de feature §Verificación con resultado de: descarga OK, Excel abre columnas correctas, acentos OK, monto con decimales OK | T005 | AC4, AC5 | 1 |
+
+Cobertura: AC1 (T003/T004) · AC2 (T003/T004) · AC3 (T001/T002) · AC4 (T001/T002/T006) ·
+AC5 (T005/T006). Sin tareas sin criterio; sin criterio sin tarea.
