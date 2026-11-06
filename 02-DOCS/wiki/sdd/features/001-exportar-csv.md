@@ -74,12 +74,36 @@
 
 ## Desarrollo
 
-- Rama: · Commits:
-- Decisiones de implementación:
+- Rama: `feature/001-exportar-csv` · Commits: 7868fe2 (✨ código + tests)
+- Tareas ejecutadas (TDD, rojo→verde en cada par):
+  - T001+T002: `test/csv.test.js` (6 tests: BOM, CRLF, encabezado exacto,
+    RFC 4180, formula injection, vacío, acentos) → `src/csv.js`
+    (`generarCsv` puro). Rojo → verde.
+  - T003+T004: `test/csv-api.test.js` (3 tests: vacío→solo encabezado, body
+    exacto orden fecha DESC/id DESC, bytes EF BB BF) → ruta
+    `GET /api/movimientos/csv` en `src/app.js` (attachment
+    `movimientos-<YYYYMMDD>.csv`, 500 con `{"errores":[...]}` si falla).
+    Rojo → verde.
+  - T005: botón «Exportar CSV» en la sección Movimientos
+    (`public/index.html`): fetch→blob→`<a download>`, error visible
+    (`#error-exportar`) si falla; `<button type="button">` (operable por
+    teclado), estilos con variables CSS (modo oscuro intacto).
+- Verificado contra la app real (servidor levantado en localhost:3000):
+  `curl` confirma el botón en el HTML y la ruta responde 200 con BOM,
+  `text/csv; charset=utf-8` y `Content-Disposition` con la fecha del día.
+- Suite completa: **16/16 en verde** (`npm test`).
+- Decisiones de implementación: (1) `res.text()` de fetch descarta el BOM al
+  decodificar (TextDecoder por defecto) — los tests decodifican con
+  `ignoreBOM: true` para afirmar el contenido exacto; el BOM sí viaja en los
+  bytes (verificado con `arrayBuffer`). (2) El nombre del archivo se toma del
+  `Content-Disposition` que envía el servidor, con fallback
+  `movimientos.csv`. (3) La sanitización anti-formula-injection vive solo en
+  el generador (un lugar, testeable).
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 22:32:11 UTC · Fin: 2026-11-06 22:39:32 UTC · Duración: ~7 min
+- Tokens: input 124,072 · caché leída 3,209,472 · output 19,747 · Costo: n/d (tabla de precios GLM pendiente)
+- Intervenciones humanas: 0 (autopilot)
 
 ## Revisión de agentes
 
@@ -115,6 +139,7 @@
 | Spec | ~2 min | in 28,413 · caché 1,452,480 · out 8,939 | 0 | Gate PASS; 4 puntos tipados |
 | Plan | ~5 min | in 25,813 · caché 3,564,480 · out 17,174 | 0 | CSV en servidor; sanitización formula injection |
 | Tasks | ~3.5 min | in 92,792 · caché 1,398,784 · out 6,122 | 0 | 6 tareas; riesgo tier 1 (1 revisor) |
+| Desarrollo | ~7 min | in 124,072 · caché 3,209,472 · out 19,747 | 0 | TDD rojo→verde; 16/16 verde; verificado en app real |
 | Desarrollo | | | | |
 | Revisión | | | | |
 | Verificación | | | | |
