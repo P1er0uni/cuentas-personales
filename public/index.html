@@ -5,43 +5,313 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Cuentas personales</title>
     <style>
-      :root { color-scheme: light dark; }
-      body {
-        font-family: system-ui, sans-serif;
-        max-width: 720px;
-        margin: 3rem auto;
-        padding: 0 1rem;
+      :root {
+        --fondo: #f5f6f8;
+        --panel: #ffffff;
+        --borde: #dde1e6;
+        --texto: #1c2430;
+        --suave: #6b7686;
+        --ingreso: #137a4d;
+        --gasto: #b3372f;
+        --acento: #2456c4;
+        color-scheme: light;
       }
-      #estado { opacity: 0.7; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --fondo: #14181f;
+          --panel: #1d232d;
+          --borde: #2c3542;
+          --texto: #e8ecf2;
+          --suave: #97a3b4;
+          --ingreso: #3ecf8e;
+          --gasto: #f27069;
+          --acento: #7aa2ff;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--fondo);
+        color: var(--texto);
+      }
+      main {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 4rem;
+      }
+      h1 { font-size: 1.4rem; margin: 0 0 1.25rem; }
+      .tarjetas {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+      }
+      .tarjeta {
+        background: var(--panel);
+        border: 1px solid var(--borde);
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+      }
+      .tarjeta .etiqueta {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--suave);
+      }
+      .tarjeta .valor { font-size: 1.35rem; font-weight: 650; margin-top: 0.15rem; }
+      .valor.positivo { color: var(--ingreso); }
+      .valor.negativo { color: var(--gasto); }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--borde);
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1.25rem;
+      }
+      section h2 { font-size: 1rem; margin: 0 0 0.9rem; }
+      form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.6rem;
+        align-items: end;
+      }
+      label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--suave); }
+      input, select {
+        font: inherit;
+        padding: 0.45rem 0.55rem;
+        border: 1px solid var(--borde);
+        border-radius: 7px;
+        background: var(--fondo);
+        color: var(--texto);
+      }
+      input:focus, select:focus { outline: 2px solid var(--acento); outline-offset: 1px; }
+      button {
+        font: inherit;
+        font-weight: 600;
+        padding: 0.5rem 1.1rem;
+        border: none;
+        border-radius: 7px;
+        background: var(--acento);
+        color: #fff;
+        cursor: pointer;
+      }
+      button:hover { filter: brightness(1.08); }
+      .error {
+        grid-column: 1 / -1;
+        color: var(--gasto);
+        font-size: 0.85rem;
+        margin: 0;
+        display: none;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+      th, td { text-align: left; padding: 0.45rem 0.4rem; border-bottom: 1px solid var(--borde); }
+      th { color: var(--suave); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
+      td.monto { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      td.monto.ingreso { color: var(--ingreso); }
+      td.monto.gasto { color: var(--gasto); }
+      td.acciones { text-align: right; }
+      button.eliminar {
+        background: none;
+        color: var(--suave);
+        font-weight: 400;
+        padding: 0.15rem 0.4rem;
+        border-radius: 5px;
+      }
+      button.eliminar:hover { color: var(--gasto); background: color-mix(in srgb, var(--gasto) 12%, transparent); }
+      .vacio { color: var(--suave); font-style: italic; margin: 0; }
+      .fila-resumen { display: grid; grid-template-columns: 1fr auto auto; gap: 0.75rem; align-items: center; padding: 0.3rem 0; font-size: 0.9rem; }
+      .barra { height: 6px; border-radius: 3px; background: var(--borde); grid-column: 1 / -1; overflow: hidden; }
+      .barra > div { height: 100%; border-radius: 3px; }
+      .barra .ingreso { background: var(--ingreso); }
+      .barra .gasto { background: var(--gasto); }
+      .tag { font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid var(--borde); color: var(--suave); }
     </style>
   </head>
   <body>
-    <h1>Cuentas personales</h1>
-    <p id="estado">Comprobando conexión con el servidor…</p>
-    <ul id="movimientos"></ul>
+    <main>
+      <h1>Cuentas personales</h1>
+
+      <div class="tarjetas">
+        <div class="tarjeta">
+          <div class="etiqueta">Saldo</div>
+          <div class="valor" id="saldo">—</div>
+        </div>
+        <div class="tarjeta">
+          <div class="etiqueta">Ingresos</div>
+          <div class="valor positivo" id="ingresos">—</div>
+        </div>
+        <div class="tarjeta">
+          <div class="etiqueta">Gastos</div>
+          <div class="valor negativo" id="gastos">—</div>
+        </div>
+      </div>
+
+      <section>
+        <h2>Nuevo movimiento</h2>
+        <form id="form">
+          <label>Tipo
+            <select id="tipo" name="tipo">
+              <option value="gasto">Gasto</option>
+              <option value="ingreso">Ingreso</option>
+            </select>
+          </label>
+          <label>Monto
+            <input id="monto" name="monto" type="number" min="0.01" step="0.01" required />
+          </label>
+          <label>Categoría
+            <input id="categoria" name="categoria" list="categorias" required placeholder="Alimentación" />
+            <datalist id="categorias">
+              <option value="Sueldo"></option>
+              <option value="Alimentación"></option>
+              <option value="Transporte"></option>
+              <option value="Servicios"></option>
+              <option value="Entretenimiento"></option>
+              <option value="Salud"></option>
+              <option value="Otros"></option>
+            </datalist>
+          </label>
+          <label>Fecha
+            <input id="fecha" name="fecha" type="date" required />
+          </label>
+          <label>Descripción (opcional)
+            <input id="descripcion" name="descripcion" type="text" placeholder="Almuerzo con el equipo" />
+          </label>
+          <button type="submit">Registrar</button>
+          <p class="error" id="error"></p>
+        </form>
+      </section>
+
+      <section>
+        <h2>Movimientos</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Descripción</th><th>Categoría</th>
+              <th class="monto">Monto</th><th class="acciones"></th>
+            </tr>
+          </thead>
+          <tbody id="movimientos"></tbody>
+        </table>
+        <p class="vacio" id="vacio">Sin movimientos todavía. Registra el primero arriba.</p>
+      </section>
+
+      <section>
+        <h2>Resumen por categoría</h2>
+        <div id="resumen"></div>
+        <p class="vacio" id="resumen-vacio">Aún no hay datos para resumir.</p>
+      </section>
+    </main>
+
     <script>
-      fetch('/api/health')
-        .then((r) => r.json())
-        .then(() => {
-          document.getElementById('estado').textContent = 'Servidor conectado.'
-          return fetch('/api/movimientos')
-        })
-        .then((r) => r.json())
-        .then((rows) => {
-          const ul = document.getElementById('movimientos')
-          if (rows.length === 0) {
-            ul.innerHTML = '<li><em>Sin movimientos todavía.</em></li>'
-            return
-          }
-          for (const m of rows) {
-            const li = document.createElement('li')
-            li.textContent = `${m.fecha} — ${m.tipo}: ${m.monto} (${m.categoria})`
-            ul.appendChild(li)
-          }
-        })
-        .catch(() => {
-          document.getElementById('estado').textContent = 'No se pudo conectar con el servidor.'
-        })
+      const moneda = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' })
+      const $ = (id) => document.getElementById(id)
+
+      $('fecha').value = new Date().toISOString().slice(0, 10)
+
+      async function getJSON(url, opciones) {
+        const res = await fetch(url, opciones)
+        if (!res.ok) {
+          const cuerpo = await res.json().catch(() => ({}))
+          throw new Error(cuerpo.errores ? cuerpo.errores.join('; ') : `Error ${res.status}`)
+        }
+        return res.status === 204 ? null : res.json()
+      }
+
+      function renderSaldo(s) {
+        $('saldo').textContent = moneda.format(s.saldo)
+        $('saldo').className = 'valor ' + (s.saldo >= 0 ? 'positivo' : 'negativo')
+        $('ingresos').textContent = moneda.format(s.ingresos)
+        $('gastos').textContent = moneda.format(s.gastos)
+      }
+
+      function renderMovimientos(rows) {
+        const tbody = $('movimientos')
+        tbody.replaceChildren()
+        $('vacio').style.display = rows.length === 0 ? '' : 'none'
+        for (const m of rows) {
+          const tr = document.createElement('tr')
+          const signo = m.tipo === 'ingreso' ? '+' : '−'
+          tr.innerHTML =
+            `<td>${m.fecha}</td>` +
+            `<td>${m.descripcion ? escapear(m.descripcion) : '<em style="color:var(--suave)">—</em>'}</td>` +
+            `<td><span class="tag">${escapear(m.categoria)}</span></td>` +
+            `<td class="monto ${m.tipo}">${signo} ${moneda.format(m.monto)}</td>` +
+            `<td class="acciones"><button class="eliminar" data-id="${m.id}" title="Eliminar">✕</button></td>`
+          tbody.appendChild(tr)
+        }
+      }
+
+      function renderResumen(datos) {
+        const cont = $('resumen')
+        cont.replaceChildren()
+        $('resumen-vacio').style.display = datos.porCategoria.length === 0 ? '' : 'none'
+        const max = Math.max(...datos.porCategoria.map((r) => r.total), 1)
+        for (const r of datos.porCategoria) {
+          const fila = document.createElement('div')
+          fila.className = 'fila-resumen'
+          fila.innerHTML =
+            `<span>${escapear(r.categoria)} <span class="tag">${r.tipo}</span></span>` +
+            `<span style="color:var(--suave)">${r.cantidad} mov.</span>` +
+            `<span class="monto ${r.tipo}" style="text-align:right;font-variant-numeric:tabular-nums">${moneda.format(r.total)}</span>` +
+            `<div class="barra"><div class="${r.tipo}" style="width:${(r.total / max) * 100}%"></div></div>`
+          cont.appendChild(fila)
+        }
+      }
+
+      function escapear(texto) {
+        const d = document.createElement('span')
+        d.textContent = texto
+        return d.innerHTML
+      }
+
+      async function cargarTodo() {
+        const [saldo, movimientos, resumen] = await Promise.all([
+          getJSON('/api/saldo'),
+          getJSON('/api/movimientos'),
+          getJSON('/api/resumen'),
+        ])
+        renderSaldo(saldo)
+        renderMovimientos(movimientos)
+        renderResumen(resumen)
+      }
+
+      $('form').addEventListener('submit', async (e) => {
+        e.preventDefault()
+        $('error').style.display = 'none'
+        const cuerpo = {
+          tipo: $('tipo').value,
+          monto: $('monto').value,
+          categoria: $('categoria').value,
+          fecha: $('fecha').value,
+          descripcion: $('descripcion').value,
+        }
+        try {
+          await getJSON('/api/movimientos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cuerpo),
+          })
+          $('monto').value = ''
+          $('descripcion').value = ''
+          $('monto').focus()
+          await cargarTodo()
+        } catch (err) {
+          $('error').textContent = err.message
+          $('error').style.display = ''
+        }
+      })
+
+      $('movimientos').addEventListener('click', async (e) => {
+        const btn = e.target.closest('button.eliminar')
+        if (!btn) return
+        await getJSON(`/api/movimientos/${btn.dataset.id}`, { method: 'DELETE' })
+        await cargarTodo()
+      })
+
+      cargarTodo().catch((err) => {
+        $('vacio').textContent = `No se pudo cargar: ${err.message}`
+      })
     </script>
   </body>
 </html>
