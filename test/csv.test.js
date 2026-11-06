@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { generarCsv } from '../src/csv.js'
 
-const BOM = '﻿'
+const BOM = '\uFEFF'
 const CRLF = '\r\n'
 
 const mov = (campos) => ({

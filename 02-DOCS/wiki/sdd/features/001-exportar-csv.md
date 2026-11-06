@@ -107,12 +107,43 @@
 
 ## Revisión de agentes
 
-- Hallazgos (por agente: refuter-correctness / refuter-security / refuter-tests / finding-verifier):
-- Resolución de cada hallazgo:
+- Configuración: riesgo **tier 1** → 1 revisor de contexto fresco por ronda
+  (subagente sin acceso a la conversación de implementación). Verificación
+  independiente de cada blocker/should-fix con el agente finding-verifier
+  (parte de «esto es falso»). Consolidación y ledger con
+  `rsc review consolidate` / `rsc review ledger`.
+- Ronda 1 (estado 0cd6e8f): **CHANGES REQUESTED** — 5 hallazgos (1 blocker,
+  1 should-fix, 3 nits).
+  - **[blocker, CONFIRMED]** el error de exportación nunca podía verse: la
+    clase CSS `.error` fijaba `display:none` y `style.display=''` del catch
+    no la vencía → AC5 incumplido (mismo defecto raíz en el `#error` del
+    formulario). El finding-verifier lo reprodujo en Edge headless:
+    `display-computado=[none] offsetHeight=[0]`. **Fix:** quitar
+    `display:none` de la clase y gobernar visibilidad solo con inline.
+  - **[should-fix, CONFIRMED]** el guard de formula injection retornaba
+    antes del entrecomillado: `=SUM(A1), total` salía sin comillas (6
+    columnas). Reproducido en Node: fila parsea a 6 campos. **Fix:** aplicar
+    prefijo y luego entrecomillar; test nuevo afirma 5 columnas tras parseo
+    RFC 4180.
+  - 3 nits (BOM invisible en el fuente, `catch` sin log, fila duplicada en
+    este doc): corregidos.
+  - Fix del blocker verificado en navegador real pulsando el botón con fetch
+    fallido: `display-computado=[block] offsetHeight=[18]`, mensaje visible.
+- Ronda 2 (solo la divergencia, estado a3ff919): **APPROVE WITH NITS** —
+  1 nit (literal BOM inconsistente en el test), corregido. 0 regresiones
+  (el revisor comparó salidas vieja/nueva caso por caso).
+- Veredicto final: **APPROVE WITH NITS**, 6/6 hallazgos fixed, 0 abiertos,
+  0 refutados. Registro completo: `02-DOCS/wiki/sdd/reviews/001-exportar-csv.md`.
+- Lección registrada: la verificación con `curl` no puede evidenciar render
+  del navegador — el blocker de UI solo era detectable con un navegador real
+  (Edge headless lo reprodujo en minutos). Para la próxima feature con UI:
+  verificar el camino de error con navegador headless, no solo con curl.
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 22:40:53 UTC · Fin: 2026-11-06 23:06:41 UTC · Duración: ~26 min
+- Tokens sesión principal: input 126,511 · caché leída 9,393,408 · output 56,007
+- Tokens subagentes (4 agentes: revisor r1, 2 finding-verifiers, revisor r2): 134,940
+- Costo: n/d (tabla de precios GLM pendiente) · Intervenciones humanas: 0 (autopilot)
 
 ## Verificación
 
@@ -140,7 +171,7 @@
 | Plan | ~5 min | in 25,813 · caché 3,564,480 · out 17,174 | 0 | CSV en servidor; sanitización formula injection |
 | Tasks | ~3.5 min | in 92,792 · caché 1,398,784 · out 6,122 | 0 | 6 tareas; riesgo tier 1 (1 revisor) |
 | Desarrollo | ~7 min | in 124,072 · caché 3,209,472 · out 19,747 | 0 | TDD rojo→verde; 16/16 verde; verificado en app real |
-| Revisión | | | | |
+| Revisión | ~26 min | in 126,511 · caché 9,393,408 · out 56,007 · subagentes 134,940 | 0 | 2 rondas; 6 hallazgos, 6 fixed; APPROVE WITH NITS |
 | Verificación | | | | |
 | Ship | | | | |
 | **Total** | | | | |
