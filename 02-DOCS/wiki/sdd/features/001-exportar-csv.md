@@ -20,13 +20,22 @@
 
 ## Spec
 
-- Resumen de lo especificado:
-- Artefactos: `specs/001-exportar-csv/spec.md`
-- Desviaciones / decisiones:
+- Resumen de lo especificado: botón «Exportar CSV» junto a los movimientos que
+  descarga un `.csv` (UTF-8 con BOM, separador coma) con encabezado
+  `fecha,tipo,monto,categoria,descripcion` y una fila por movimiento en el
+  orden de la tabla. Sin movimientos → solo encabezados. Descripciones con
+  comas/comillas → celda entrecomillada. Error visible, nunca descarga
+  silenciosa. Fuera de alcance: filtro por mes, XLSX/PDF, exportar resúmenes.
+- Artefactos: `02-DOCS/wiki/sdd/specs/001-exportar-csv.md` — `rsc spec gate`:
+  **PASS** (4 puntos abiertos, 4 tipados)
+- Desviaciones / decisiones: spec aprobada **en autopilot** (autorización
+  expresa del dueño para toda la corrida). Suposiciones tomadas: UTF-8 con BOM
+  + coma; orden igual que la tabla. Diferido: exportación por mes.
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 22:18:39 UTC · Fin: 2026-11-06 22:20:26 UTC · Duración: ~2 min
+- Tokens: input 28,413 · caché leída 1,452,480 · output 8,939 · Costo: n/d (tabla de precios GLM pendiente)
+- Intervenciones humanas: 0 (autopilot)
 
 ## Plan
 
