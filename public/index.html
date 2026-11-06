@@ -70,6 +70,10 @@
         margin-bottom: 1.25rem;
       }
       section h2 { font-size: 1rem; margin: 0 0 0.9rem; }
+      .encabezado-seccion { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; }
+      .encabezado-seccion h2 { margin: 0; }
+      button.secundario { background: none; border: 1px solid var(--borde); color: var(--texto); font-weight: 500; padding: 0.35rem 0.9rem; }
+      button.secundario:hover { border-color: var(--acento); color: var(--acento); filter: none; }
       form {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -102,7 +106,6 @@
         color: var(--gasto);
         font-size: 0.85rem;
         margin: 0;
-        display: none;
       }
       table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
       th, td { text-align: left; padding: 0.45rem 0.4rem; border-bottom: 1px solid var(--borde); }
@@ -178,12 +181,16 @@
             <input id="descripcion" name="descripcion" type="text" placeholder="Almuerzo con el equipo" />
           </label>
           <button type="submit">Registrar</button>
-          <p class="error" id="error"></p>
+          <p class="error" id="error" style="display:none"></p>
         </form>
       </section>
 
       <section>
-        <h2>Movimientos</h2>
+        <div class="encabezado-seccion">
+          <h2>Movimientos</h2>
+          <button type="button" id="exportar" class="secundario">Exportar CSV</button>
+        </div>
+        <p class="error" id="error-exportar" style="display:none"></p>
         <table>
           <thead>
             <tr>
@@ -308,6 +315,33 @@
         await getJSON(`/api/movimientos/${btn.dataset.id}`, { method: 'DELETE' })
         await cargarTodo()
       })
+
+      async function descargarCsv() {
+        const err = $('error-exportar')
+        err.style.display = 'none'
+        try {
+          const res = await fetch('/api/movimientos/csv')
+          if (!res.ok) {
+            const cuerpo = await res.json().catch(() => ({}))
+            throw new Error(cuerpo.errores ? cuerpo.errores.join('; ') : `Error ${res.status}`)
+          }
+          const blob = await res.blob()
+          const nombre = (res.headers.get('content-disposition')?.match(/filename="?([^";]+)"?/) ?? [])[1] ?? 'movimientos.csv'
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = nombre
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          URL.revokeObjectURL(url)
+        } catch (e) {
+          err.textContent = `No se pudo exportar: ${e.message}`
+          err.style.display = ''
+        }
+      }
+
+      $('exportar').addEventListener('click', descargarCsv)
 
       cargarTodo().catch((err) => {
         $('vacio').textContent = `No se pudo cargar: ${err.message}`

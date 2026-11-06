@@ -1,5 +1,6 @@
 import express from 'express'
 import { db } from './db.js'
+import { generarCsv } from './csv.js'
 
 export const app = express()
 
@@ -15,6 +16,18 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/movimientos', (_req, res) => {
   const rows = db.prepare('SELECT * FROM movimientos ORDER BY fecha DESC, id DESC').all()
   res.json(rows)
+})
+
+app.get('/api/movimientos/csv', (_req, res) => {
+  try {
+    const rows = db.prepare('SELECT * FROM movimientos ORDER BY fecha DESC, id DESC').all()
+    const hoy = new Date().toISOString().slice(0, 10).replaceAll('-', '')
+    res.setHeader('Content-Disposition', `attachment; filename="movimientos-${hoy}.csv"`)
+    res.type('text/csv').send(generarCsv(rows))
+  } catch (err) {
+    console.error('Error generando CSV:', err)
+    res.status(500).json({ errores: ['No se pudo generar el archivo CSV'] })
+  }
 })
 
 app.post('/api/movimientos', (req, res) => {
