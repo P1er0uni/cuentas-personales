@@ -140,7 +140,6 @@
 | Plan | ~5 min | in 25,813 · caché 3,564,480 · out 17,174 | 0 | CSV en servidor; sanitización formula injection |
 | Tasks | ~3.5 min | in 92,792 · caché 1,398,784 · out 6,122 | 0 | 6 tareas; riesgo tier 1 (1 revisor) |
 | Desarrollo | ~7 min | in 124,072 · caché 3,209,472 · out 19,747 | 0 | TDD rojo→verde; 16/16 verde; verificado en app real |
-| Desarrollo | | | | |
 | Revisión | | | | |
 | Verificación | | | | |
 | Ship | | | | |
