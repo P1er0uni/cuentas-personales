@@ -56,13 +56,21 @@
 
 ## Tasks
 
-- Resumen del desglose:
-- Artefactos: `specs/001-exportar-csv/tasks.md`
-- Desviaciones / decisiones:
+- Resumen del desglose: 6 tareas (T001–T006) en cadena TDD: tests unit del
+  generador → implementación `src/csv.js` → tests integration de la ruta →
+  implementación `GET /api/movimientos/csv` → botón en la UI → verificación
+  manual en navegador+Excel. Cada tarea con done-check literal, dependencias y
+  traza a los 5 criterios de aceptación de la spec. Cobertura completa: AC1–AC5.
+- Artefactos: tabla anexa al plan (`02-DOCS/wiki/sdd/plans/001-exportar-csv.md` §8)
+- Desviaciones / decisiones: riesgo del conjunto evaluado con `rsc risk` sobre
+  las 5 rutas esperadas → **tier 1** (1 revisor, sin aprobación humana
+  obligatoria). Las tareas viven en el plan (no en un archivo aparte), como
+  manda el skill `tasks` del harness: este paso no produce código.
 
 **Métricas del paso**
-- Inicio: · Fin: · Duración:
-- Tokens: · Costo estimado: · Intervenciones humanas:
+- Inicio: 2026-11-06 22:26:48 UTC · Fin: 2026-11-06 22:30:17 UTC · Duración: ~3.5 min
+- Tokens: input 92,792 · caché leída 1,398,784 · output 6,122 · Costo: n/d (tabla de precios GLM pendiente)
+- Intervenciones humanas: 0 (autopilot)
 
 ## Desarrollo
 
@@ -104,9 +112,9 @@
 | Paso | Duración | Tokens | Interv. humanas | Notas |
 |---|---|---|---|---|
 | Registro | ~2 min | — | 1 (elección de la feature) | Elegida entre 4 opciones |
-| Spec | | | | |
-| Plan | | | | |
-| Tasks | | | | |
+| Spec | ~2 min | in 28,413 · caché 1,452,480 · out 8,939 | 0 | Gate PASS; 4 puntos tipados |
+| Plan | ~5 min | in 25,813 · caché 3,564,480 · out 17,174 | 0 | CSV en servidor; sanitización formula injection |
+| Tasks | ~3.5 min | in 92,792 · caché 1,398,784 · out 6,122 | 0 | 6 tareas; riesgo tier 1 (1 revisor) |
 | Desarrollo | | | | |
 | Revisión | | | | |
 | Verificación | | | | |
