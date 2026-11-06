@@ -24,7 +24,8 @@ app.get('/api/movimientos/csv', (_req, res) => {
     const hoy = new Date().toISOString().slice(0, 10).replaceAll('-', '')
     res.setHeader('Content-Disposition', `attachment; filename="movimientos-${hoy}.csv"`)
     res.type('text/csv').send(generarCsv(rows))
-  } catch {
+  } catch (err) {
+    console.error('Error generando CSV:', err)
     res.status(500).json({ errores: ['No se pudo generar el archivo CSV'] })
   }
 })

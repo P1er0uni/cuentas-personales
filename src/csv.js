@@ -1,7 +1,7 @@
 // Generador de CSV — puro: sin db, sin reloj, sin I/O.
 // Formato: UTF-8 con BOM, coma, CRLF (RFC 4180).
 
-const BOM = '﻿'
+const BOM = '\uFEFF'
 const CRLF = '\r\n'
 const ENCABEZADO = ['fecha', 'tipo', 'monto', 'categoria', 'descripcion']
 
@@ -10,9 +10,9 @@ const ENCABEZADO = ['fecha', 'tipo', 'monto', 'categoria', 'descripcion']
 const PREFIJO_FORMULA = /^[=+\-@]/
 
 function entrecomillar(valor) {
-  const texto = String(valor)
+  let texto = String(valor)
   if (PREFIJO_FORMULA.test(texto)) {
-    return `'${texto}`
+    texto = `'${texto}`
   }
   if (/[",\r\n]/.test(texto)) {
     return `"${texto.replace(/"/g, '""')}"`

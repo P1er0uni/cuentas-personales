@@ -59,6 +59,32 @@ describe('generarCsv', () => {
     expect(lineas[4].endsWith(",'@ref")).toBe(true)
   })
 
+  it('formula injection + coma/comillas: prefijo Y entrecomillado RFC 4180 juntos', () => {
+    const csv = generarCsv([
+      mov({ descripcion: '=SUM(A1), total' }),
+      mov({ descripcion: '-Servicios, agua' }),
+      mov({ descripcion: '=CONCAT("a","b")' }),
+    ])
+    const lineas = csv.slice(BOM.length).split(CRLF)
+    // Prefijo ' aplicado Y celda entrecomillada: la fila sigue teniendo 5 columnas
+    expect(lineas[1]).toBe('2026-11-01,ingreso,100,Sueldo,"\'=SUM(A1), total"')
+    expect(lineas[2]).toBe('2026-11-01,ingreso,100,Sueldo,"\'-Servicios, agua"')
+    expect(lineas[3]).toBe('2026-11-01,ingreso,100,Sueldo,"\'=CONCAT(""a"",""b"")"')
+    // Parseo RFC 4180: cada fila debe dar exactamente 5 campos
+    const contarCampos = (linea) => {
+      let campos = 0, dentro = false
+      for (let i = 0; i < linea.length; i++) {
+        const c = linea[i]
+        if (c === '"') dentro = !dentro
+        else if (c === ',' && !dentro) campos++
+      }
+      return campos + 1
+    }
+    for (const linea of lineas.slice(1, 4)) {
+      expect(contarCampos(linea)).toBe(5)
+    }
+  })
+
   it('acentos y ñ intactos (UTF-8 con BOM)', () => {
     const csv = generarCsv([mov({ categoria: 'Alimentación', descripcion: 'Año nuevo, ñoño' })])
     expect(csv.includes('Alimentación')).toBe(true)
