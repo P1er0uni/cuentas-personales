@@ -1,0 +1,23 @@
+{
+  "name": "cuentas-personales",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mini-proyecto piloto: sistema web de cuentas personales (ingresos, gastos, saldo y resumen).",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true
+  }
+}

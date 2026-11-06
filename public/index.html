@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cuentas personales</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 720px;
+        margin: 3rem auto;
+        padding: 0 1rem;
+      }
+      #estado { opacity: 0.7; }
+    </style>
+  </head>
+  <body>
+    <h1>Cuentas personales</h1>
+    <p id="estado">Comprobando conexión con el servidor…</p>
+    <ul id="movimientos"></ul>
+    <script>
+      fetch('/api/health')
+        .then((r) => r.json())
+        .then(() => {
+          document.getElementById('estado').textContent = 'Servidor conectado.'
+          return fetch('/api/movimientos')
+        })
+        .then((r) => r.json())
+        .then((rows) => {
+          const ul = document.getElementById('movimientos')
+          if (rows.length === 0) {
+            ul.innerHTML = '<li><em>Sin movimientos todavía.</em></li>'
+            return
+          }
+          for (const m of rows) {
+            const li = document.createElement('li')
+            li.textContent = `${m.fecha} — ${m.tipo}: ${m.monto} (${m.categoria})`
+            ul.appendChild(li)
+          }
+        })
+        .catch(() => {
+          document.getElementById('estado').textContent = 'No se pudo conectar con el servidor.'
+        })
+    </script>
+  </body>
+</html>
