@@ -7,13 +7,16 @@ timestamp: 2026-11-13T00:00:00Z
 topic: sdd
 slug: 002-sdd-desde-issue
 branch: feature/002-sdd-desde-issue
-status: draft
+status: approved
+approved-mode: autopilot
 ---
 
 # Spec — SDD disparado por GitHub Issue
 
-> Slug: `002-sdd-desde-issue` · Status: draft · Created: 2026-11-13
+> Slug: `002-sdd-desde-issue` · Status: approved · Created: 2026-11-13
 > Inherits: [constitution](../constitution.md)
+> **Aprobada en autopilot** (el dueño autorizó la corrida completa sin pausas
+> por fase, 2026-11-13) — no aprobación ítem por ítem.
 > Promocionada desde FTD (`02-DOCS/wiki/ftd/sdd-desde-issue.md`) — `rsc risk`
 > tier 2 por tocar el harness; el trabajo ya hecho se conserva, no se reinicia.
 
