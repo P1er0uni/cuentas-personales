@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "watch:issues": "node .claude/issue-watcher.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

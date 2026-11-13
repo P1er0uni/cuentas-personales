@@ -8,6 +8,15 @@
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/rsc-bootstrap.mjs\" \"announce\" \"${CLAUDE_PROJECT_DIR}\" \"${CLAUDE_PROJECT_DIR}/.rsc/session-start.mjs\" \"${CLAUDE_PROJECT_DIR}/.claude/skills/suggest/SKILL.md\" \"${CLAUDE_PROJECT_DIR}\""
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/issue-trigger.mjs\"",
+            "timeout": 20
+          }
+        ]
       }
     ],
     "PreCompact": [

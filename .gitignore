@@ -6,6 +6,7 @@ data/
 # rsc local state (hooks, seals, logs) and managed skill links — machine-local
 .rsc/
 .worktrees/
+.claude/.issue-watcher-seen.json
 .claude/skills/analyze
 .claude/skills/asdd
 .claude/skills/automation-strategy
@@ -48,3 +49,4 @@ data/
 .claude/commands/learn.md
 .claude/commands/resume-session.md
 .claude/commands/save-session.md
+.claude/skills/security-audit
