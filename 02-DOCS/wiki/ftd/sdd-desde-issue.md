@@ -42,9 +42,9 @@ Decisiones de diseño (aprobadas por el usuario):
 
 - [ ] **Detector script** (`.claude/issue-trigger.mjs`) — probado con 0 issues (silencio) y con un
       issue de prueba abierto (imprime el bloque de oferta con número, título y URL).
-- [ ] **Hook cableado** en `.claude/settings.json` — una sesión nueva muestra el bloque de
+- [x] **Hook cableado** en `.claude/settings.json` — una sesión nueva muestra el bloque de
       detección cuando hay issues abiertos.
-- [ ] **Convención de vinculación** registrada — el texto inyectado por el hook y este documento
+- [x] **Convención de vinculación** registrada — el texto inyectado por el hook y este documento
       dicen: spec con `issue: N`, PR con `Closes #N`.
 - [ ] **Prueba end-to-end del disparador** — issue de prueba creado en GitHub, sesión nueva lo
       detecta y ofrece arrancar; el issue se cierra al terminar la prueba.
@@ -53,11 +53,18 @@ Decisiones de diseño (aprobadas por el usuario):
 
 ## Evidence
 
-(vacío — se llena por tarea con la salida observada)
+- Rama `feature/sdd-desde-issue` creada desde main (observado: `Switched to a new branch`).
+- Detector con 0 issues: `node .claude/issue-trigger.mjs` → sin salida, exit 0 (silencio, correcto).
+- Hook SessionStart añadido a `.claude/settings.json` como segunda entrada aditiva
+  (`node "${CLAUDE_PROJECT_DIR}/.claude/issue-trigger.mjs"`, timeout 20s); JSON validado por Edit.
+- Convención de vinculación en el texto inyectado por el hook y en la cabecera del script.
+- Pendiente: caso con issue abierto (creación del issue de prueba bloqueada temporalmente por
+  indisponibilidad del clasificador de permisos — se reintenta).
 
 ## Next
 
-Crear la rama `feature/sdd-desde-issue` y escribir el script detector (tarea 1 del checklist).
+Crear el issue de prueba en GitHub y correr el detector con un issue abierto (tarea 1, segunda
+mitad); luego `rsc risk` del diff.
 
 ## Riesgos anotados
 
