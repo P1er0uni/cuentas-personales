@@ -139,6 +139,31 @@ veredictos: CONFIRMED · fixes: 5/5 aplicados.
 
 ## Ship (`ship`)
 
-(ver abajo — se completa al ejecutar el paso)
+- Commits por paso en `feature/002-sdd-desde-issue`: e73e7b1 (registro +
+  spec), 4cb6d36 (plan), 3b0d243 (chore rsc 4.1.5), ef3104a (implementación
+  + fixes del panel), 5ba0753 (docs del ciclo).
+- Ledger del panel registrado: round 1, 5 hallazgos (L7–L11), 5 outcomes
+  `fixed`, panel de 3 (correctness, security, tests) sobre 5ba0753.
+- Push y PR: **https://github.com/P1er0uni/cuentas-personales/pull/4**
+  (cuerpo con Qué/Por qué/Cómo se probó/Riesgo/Cómo revertir, `Closes #3`).
+- **Merge humano pendiente** — tier 2: el agente nunca lo firma. Al mergear,
+  GitHub cierra el issue #3 automáticamente (AC7).
+
+**Métricas del paso** — tokens: n/d · intervenciones humanas: 0 (autopilot;
+el merge es la única intervención, y es del dueño por regla) · artefactos:
+PR #4, ledger local con panel registrado.
 
 ## Métricas
+
+- **Totales del ciclo** (inicio ~16:00, cierre ~23:30, con cortes largos del
+  clasificador del harness de permisos que bloquearon Write/Bash de forma
+  intermitente): tokens n/d en todos los pasos (tabla de precios GLM
+  pendiente, igual que en 001) · intervenciones humanas: ~8, todas en la
+  primera mitad (rondas de clarify, cambio de requerimiento, aprobación
+  autopilot); 0 desde la aprobación hasta el PR.
+- Revisión: 3 refuters + 3 finding-verifiers · 5 hallazgos, 5 CONFIRMED,
+  5 fixed · 0 falsos positivos.
+- Tests: 25 del vigilante (7 puras + 13 integración + 5 sanitización) ·
+  suite total 45/45.
+- Prueba en vivo pendiente (la hace el dueño): `npm run watch:issues` con el
+  issue #3 abierto → ventana automática con Claude Code en autopilot.
