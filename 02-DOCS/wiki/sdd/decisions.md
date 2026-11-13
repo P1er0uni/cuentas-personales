@@ -27,3 +27,16 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   humano, descartado por el dueño.
 - **Por qué**: el issue versiona la idea, la desacopla del momento de
   desarrollo y se vincula de punta a punta (spec `issue: N`, PR `Closes #N`).
+
+## 2026-11-13 — Feature 002 (revisión): vigilante local + autopilot
+
+- **Decisión**: el disparador evoluciona a pedido del dueño — un vigilante
+  local detecta issues nuevos (polling ≤ 2 min) y abre solo una ventana de
+  PowerShell con Claude Code corriendo la cadena SDD en autopilot. El hook de
+  detección al abrir sesión pasa a ser fallback. El auto-merge queda fuera:
+  el PR espera al humano (tier 2).
+- **Opciones consideradas**: (a) GitHub Actions en la nube — descartado: el
+  harness rsc no corre allá y el costo por token no usa la suscripción;
+  (b) comando semi-manual — descartado: el dueño quiere cero pasos manuales
+  tras crear el issue.
+- **Por qué**: crear el issue debe ser el único paso manual del dueño.
