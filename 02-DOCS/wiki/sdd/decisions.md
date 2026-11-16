@@ -40,3 +40,22 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   (b) comando semi-manual — descartado: el dueño quiere cero pasos manuales
   tras crear el issue.
 - **Por qué**: crear el issue debe ser el único paso manual del dueño.
+
+## 2026-11-16 — CLAUDE.md: métricas por paso y trazabilidad prompt → spec → plan
+
+- **Decisión**: la sección «Convenciones» de CLAUDE.md (lo que el agente carga
+  en cada sesión) pasa a exigir lo que REGLAS-DOCUMENTACION.md ya mandataba:
+  bloque de métricas por paso (inicio/fin, duración, tokens, intervenciones)
+  y registro del prompt inicial con la spec y el plan que produjo. Se corrige
+  de paso la ruta de las specs (`specs/` → `02-DOCS/wiki/sdd/specs/`; la
+  carpeta raíz nunca existió en este repo).
+- **Excepción al gate, autorizada por el dueño**: `rsc risk` marcó tier 2
+  (CLAUDE.md = capa harness), lo que exige rama + spec gate + panel de 3.
+  El dueño eligió desbloquear main (`rsc main unlock`) y hacer el cambio
+  directo, sin PR ni panel. Queda registrado aquí como decisión consciente,
+  no como omisión.
+- **Opciones consideradas**: (a) rama feature/003 + spec + gate + panel —
+  ceremonia completa para una edición de documentación; (b) desbloquear main
+  y editar directo — elegida por el dueño.
+- **Por qué**: cambio de solo documentación, revisable a ojo en el diff;
+  la fricción del tier 2 no compra protección adicional aquí (P7).
