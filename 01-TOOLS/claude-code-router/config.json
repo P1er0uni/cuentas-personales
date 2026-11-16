@@ -10,7 +10,7 @@
       "name": "openai",
       "api_base_url": "https://api.openai.com/v1/chat/completions",
       "api_key": "env.OPENAI_API_KEY",
-      "models": ["gpt-6-astra", "gpt-6-cyber", "gpt-6-luna"]
+      "models": ["gpt-6-astra", "gpt-6.1-sol", "gpt-6-luna"]
     }
   ],
   "Router": {
