@@ -124,3 +124,20 @@
   bloqueado puede des-bloquearse llenando el Map con ~1000 emails
   desechables (bypass introducido por el propio fix de la cota). Pendiente:
   lente tests de ronda 2; luego consolidate + verify + fix en ronda 3.
+
+## T002 — cierre ronda 2 — 2026-11-17
+- Panel completo: security 1 should-fix · correctness 1 should-fix (mismo
+  defecto, convergido) · tests 2 should-fix (pins faltantes).
+- Consolidate: 3 únicos (L16–L18; L17 marcado repeat de L10 por el ledger).
+  Verificación adversarial: **3 CONFIRMED** — y F3 (evicción) **escalado a
+  blocker**: el verificador reprodujo el ataque paso a paso y el test F3
+  del fix anterior asertaba el comportamiento buggy en vez de capturarlo.
+  Violación directa de AC10.
+- Aviso del ledger: posible gap de evidencia en AC10 (objeciones distintas
+  del lente tests en rondas 1 y 2). No se debilita el criterio; la prueba
+  conductual del bloqueo vive en T011 (en vivo). Anotado.
+- Fix de ronda 3 (ÚLTIMA del presupuesto) despachado: guard de evicción
+  (víctima = más antigua NO bloqueada; si todas bloqueadas, el Map crece),
+  test F3 corregido (base SIGUE bloqueada tras llenar el Map), pin del guard
+  de registrarFallo con entry expirada presente, pin del barrido con
+  expirada reclamada antes que una viva.
