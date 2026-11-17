@@ -214,3 +214,16 @@
   tests en rondas 1–4). No se debilitó el criterio; la profundidad de las
   objeciones refleja lo sutil del contrato de bloqueo. Prueba conductual en
   T011 en vivo.
+
+## T004 — 2026-11-17
+- status: built (review pendiente)
+- red: 10 tests fallando con 404 (endpoints inexistentes) → green 10/10.
+- files: `test/login-api.test.js` (nuevo, 10 tests, fakes vía vi.mock
+  siguiendo el patrón de api.test.js), `src/auth.js` (+wrappers reales de
+  Supabase Auth con import lazy de supabase — evita arrastrar la service
+  key a los tests unitarios), `src/app.js` (+4 endpoints).
+- commit 0-worktree b206c1a → cherry-pick **6f678d4**. Suite **90/90**.
+- decisiones de diseño: login SIN bloqueo (T006 lo cablea — alcance
+  deliberado); logout idempotente (204 siempre, cookie expirada siempre).
+- risk: tier 2 (src/auth.js + test/login-api.test.js, clase auth) — panel
+  de 3 despachado (ronda 1).
