@@ -160,3 +160,15 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   plan no cumple).
 - **Por qué**: la spec y el plan vuelven a decir lo mismo; el día que haya
   despliegue real, la spec misma señala qué revisar.
+
+## 2026-11-17 — vitest.config.js excluye worktrees de agentes (feature: 003, implement)
+
+- Contexto: los developers paralelos trabajan en worktrees bajo
+  `.claude/worktrees/`; vitest descubría sus copias de los tests (sin `.env`,
+  gitignored) y la barra de merge (P2) contaba archivos ajenos al árbol real.
+- Opciones: excluir por config (elegida) vs filtrar por comando en cada
+  corrida vs prohibir worktrees dentro de la carpeta del proyecto.
+- Decisión: `vitest.config.js` con `exclude` de `.claude/worktrees/**`
+  (mantiene los excludes default de node_modules y dist).
+- Por qué: el cambio vive con el proyecto, aplica a toda corrida futura y no
+  debilita ningún test — solo acota el descubrimiento al árbol real.
