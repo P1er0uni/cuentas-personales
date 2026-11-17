@@ -193,3 +193,27 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   email) sin castigar doble al legítimo (esperar los 15 min devuelve los 5
   intentos); la cota evita que el estado anti-ataque sea en sí el vector de
   DoS.
+
+## 2026-11-17 — Evicción respeta el bloqueo activo (feature: 003, T002, ronda 3)
+
+- Contexto: hallazgo F3 (BLOCKER) de la ronda 2 — `mantenerCota` evicta la
+  primera clave del Map sin mirar `bloqueadoHasta`, de modo que un atacante
+  bloqueado (1.ª clave) se des-bloquea al llenar el registro con ~1000 emails
+  desechables, violando AC10. El test F3 original asentaba el comportamiento
+  buggy (`decidirBloqueo(base, ...).toBeNull()` tras llenar el Map).
+- Decisión: la víctima de evicción es la entry más antigua **no bloqueada
+  activamente** (`bloqueadoHasta === null || ahora >= bloqueadoHasta`). Si
+  todas las entries están bloqueadas activamente, no se evicta nada y el Map
+  crece temporalmente — nunca se des-bloquea a un atacante para ahorrar
+  memoria. El test F3 se corrigió para asentar que `base` sigue bloqueada.
+- Por qué: la cota protege contra DoS de memoria, pero no a costa de regalar
+  el bloqueo al atacante que la provoca; el crecimiento temporal acotado por
+  la ventana de bloqueo es aceptable.
+- Nota (pin F2): el pin del barrido de expiradas usa **dos** entries expiradas
+  (EXP1, EXP2) en vez de una, porque tras el fix F3 la evicción por sí sola ya
+  reclama una entry expirada (es «no bloqueada activamente» y la más antigua).
+  Con una sola expirada el mutante «elimina el loop de barrido» no es
+  observable: barrido y evicción reclaman la misma entry. Con dos, el barrido
+  reclama ambas (la 2.ª arranca fresca luego) y la evicción sola solo reclama
+  una (la 2.ª lingería con `fallos=5` y un fallo posterior la re-bloquearía al
+  instante). Esa diferencia es lo que el pin asienta.
