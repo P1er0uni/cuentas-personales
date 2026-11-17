@@ -171,7 +171,11 @@ feature con su evidencia.
 
 - **suposición tomada (validada por el dueño, 2026-11-17)** — la sesión
   persiste entre visitas del navegador hasta cerrar sesión, sin expiración
-  corta.
+  corta. **Limitación aceptada por el dueño (2026-11-17, hallazgo 1 del
+  análisis):** el session store vive en memoria del servidor, así que
+  reiniciar el servidor cierra todas las sesiones. Aceptable mientras la app
+  corra local; al desplegarla en un servidor real, revisar (hallazgo 1 de
+  `analysis/003-login-usuarios.md`).
 - **suposición tomada (decisión del dueño, 2026-11-17)** — contraseña con
   longitud mínima de 8, sin requisitos de complejidad.
 - **suposición tomada (decisión del dueño, 2026-11-17)** — bloqueo tras 5
@@ -200,3 +204,7 @@ feature con su evidencia.
   intentos → 15 min por email; sesión persistente confirmada; **recuperación
   de contraseña entra al alcance** (antes non-goal) — Goals, Behaviour y dos
   criterios nuevos. Sin preguntas abiertas restantes.
+- 2026-11-17 — Tras el análisis de consistencia (`analysis/003-login-usuarios.md`,
+  hallazgo 1): el dueño acepta que reiniciar el servidor cierre todas las
+  sesiones (app local por ahora); limitación registrada en la suposición de
+  sesión. Los demás hallazgos MEDIUM se aceptan tal cual, sin cambios.

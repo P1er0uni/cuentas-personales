@@ -144,3 +144,19 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
 - **Por qué**: cumple la constitución P7 y la spec §What it must respect al
   pie de la letra; minimiza superficie criptográfica propia en un camino
   always-human.
+
+## 2026-11-17 — Feature 003 (análisis): hallazgo 1 resuelto, demás MEDIUM aceptados
+
+- **Decisión**: el dueño resuelve el hallazgo 1 del análisis de consistencia
+  (`analysis/003-login-usuarios.md`) aceptando la limitación: el session
+  store vive en memoria del servidor y **reiniciar el servidor cierra todas
+  las sesiones**. Aceptable porque la app corre local; revisar al desplegar
+  a un servidor real. Los hallazgos MEDIUM 2–5 (done-checks finos) se
+  aceptan tal cual, sin cambios. Registrado en la spec (suposición de sesión
+  + Revisions).
+- **Opciones consideradas**: registrar la limitación aceptada (elegida) vs
+  mover el session store a persistente (más costo, innecesario en local) vs
+  dejarlo solo como riesgo del plan (la spec quedaría prometiendo algo que el
+  plan no cumple).
+- **Por qué**: la spec y el plan vuelven a decir lo mismo; el día que haya
+  despliegue real, la spec misma señala qué revisar.
