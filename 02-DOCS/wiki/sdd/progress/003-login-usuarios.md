@@ -65,3 +65,24 @@
   descubrimiento de tests (los worktrees de agentes paralelos no tienen
   `.env` y contaminaban la barra P2). Suite combinada tras integrar
   T002+T003: **66/66 verde, 8 archivos**.
+
+## T002 — ronda 1 de revisión — 2026-11-17
+- Panel de 3: correctness PASS + 1 question · security 3 hallazgos (2
+  should-fix + 1 question) · tests 3 hallazgos (2 should-fix + 1 nit).
+- Consolidate: 6 únicos; los 4 should-fix verificados por finding-verifier →
+  **4 CONFIRMED** (normalización de email, mutante ceil/round, Map sin cota,
+  mutante delete/clear). Registrados en ledger como L4–L10.
+- Fix de ronda 2 despachado (worktree): normalizar key, cota con barrido de
+  expiradas + evicción de la más antigua, semántica de ciclo de vida
+  (fallo en bloqueo activo no extiende; expirada la ventana, ciclo fresco de
+  5), y 6+ tests nuevos que matan los mutantes.
+
+## T003 — ronda 1 de revisión — 2026-11-17
+- Panel de 3: security PASS (14 vectores) · tests 4 hallazgos (2 should-fix
+  + 2 nits) · correctness PASS + 1 nit.
+- Consolidate: 5 únicos; los 2 should-fix verificados → **2 CONFIRMED**
+  (id no adivinable sin falsificar; destruir sin multi-sesión). Producción
+  correcta en ambos — son gaps de tests. Registrados como L11–L15.
+- Fix de ronda 2 despachado (worktree): pins anti-mutante (UUID v4 regex +
+  unicidad, destruir multi-sesión, Path=/, contador de siguiente) y trim
+  individual de clave/valor en parsearCookie (único cambio de producción).

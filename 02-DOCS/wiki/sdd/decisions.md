@@ -172,3 +172,24 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   (mantiene los excludes default de node_modules y dist).
 - Por qué: el cambio vive con el proyecto, aplica a toda corrida futura y no
   debilita ningún test — solo acota el descubrimiento al árbol real.
+
+## 2026-11-17 — Semántica del ciclo de vida del bloqueo (feature: 003, T002, ronda 2)
+
+- Contexto: dos lentes del panel de T002 marcaron comportamientos sin
+  decidir: la ventana se re-extiende con cada fallo posterior al 5.º
+  (bloqueo indefinido posible) y el contador no se reinicia al expirar (1
+  typo tras esperar 15 min = re-bloqueo inmediato).
+- Opciones: (a) ventana fija desde el 5.º fallo + ciclo fresco al expirar
+  (elegida); (b) ventana deslizante que se extiende con cada fallo; (c)
+  contador persistente entre ciclos.
+- Decisión: `registrarFallo` es no-op durante bloqueo activo (la ventana no
+  se mueve — el caller ya rechazó el intento); `decidirBloqueo` elimina la
+  entry al detectar la ventana expirada, de modo que el ciclo siguiente
+  arranca con 5 intentos frescos. Además: la clave del contador es el email
+  normalizado (trim + lowercase, como Supabase Auth) y el registro tiene
+  cota (barrido de expiradas + evicción de la más antigua) contra DoS de
+  memoria.
+- Por qué: castiga al atacante (ventana fija, sin bypass por variaciones de
+  email) sin castigar doble al legítimo (esperar los 15 min devuelve los 5
+  intentos); la cota evita que el estado anti-ataque sea en sí el vector de
+  DoS.
