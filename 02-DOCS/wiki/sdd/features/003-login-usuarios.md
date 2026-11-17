@@ -99,7 +99,30 @@ derivado del plan aprobado) · artefactos: tasks + forecast en el plan.
 
 ## Desarrollo (`implement`)
 
-- Pendiente.
+- Sesión 1 (2026-11-17): **T001–T004 completas** con el ciclo completo
+  build→risk→review→controls por tarea. Migración MCP (user_id + 4
+  políticas RLS + índice); bloqueo anti fuerza bruta (normalización de
+  email, cota con evicción que respeta bloqueos activos, ventana fija,
+  ciclo fresco al expirar — 4 rondas, la última autorizada por el dueño
+  tras blocker confirmado de saturación); session store en memoria con
+  cookie httponly; endpoints de auth (registro/login/logout/sesión) con
+  wrappers de Supabase Auth y doble capa anti-fuga de internals.
+- Commits en `feature/003-login-usuarios` (14 a la fecha): trabajo previo
+  de main rotulado, gobernanza v1.1.0, artefactos de la feature, y uno por
+  tarea/ronda (ver `progress/003-login-usuarios.md` para el detalle con
+  evidencia RED→GREEN de cada una).
+- Hallazgos de revisión: 30 entradas en el ledger local de rsc (L1–L30);
+  2 blockers confirmados y cerrados (evicción de bloqueados, pérdida de
+  fallos por saturación); 1 fuga de internals cerrada con doble capa.
+- Suite: **91/91 verde** (51 base + 17 auth + 12 session + 11 login-api).
+- **Pendiente** (decisión del dueño: parar tras T004): T005–T012. Ver
+  `progress/003-login-usuarios.md` — sección «Estado de sesión».
+
+**Métricas del paso** — Inicio ~11:00 / fin ~15:45 (UTC-5) · duración
+~4 h 45 min (T001–T004) · tokens: n/d (pendiente de extraer de
+transcripciones — REGLAS-DOCUMENTACION Regla 4) · intervenciones humanas:
+~6 (frontier, git, D1 ronda 4, scope de parada, 2 aclaraciones) ·
+artefactos: progress ledger, decisions.md (5 entradas), 14 commits.
 
 ## Revisión de agentes
 

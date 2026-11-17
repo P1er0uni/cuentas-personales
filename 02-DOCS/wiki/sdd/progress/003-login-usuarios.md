@@ -250,3 +250,30 @@
 - RED: 1 failed | 10 passed (la fuga llegaba al cliente) → GREEN: 11/11;
   suite **91/91**. L25/L26 `fixed` en ledger. Ronda 2 abierta, panel
   despachado sobre el diff nuevo.
+
+## T004 — cierre ronda 2 — 2026-11-17
+- status: **complete**
+- Panel de ronda 2 (diff 987f9d1): security **PASS** (6 vectores; fuga
+  cerrada de punta a punta, ningún endpoint reenvía err.message) ·
+  correctness **PASS** + 1 question · tests **PASS** + 1 question — ambos
+  questions son el mismo mutante equivalente (el fix del wrapper es
+  defensa-en-profundidad que la suite no presencía por el vi.mock;
+  verificación en vivo en T011). Registrado como L30. Cero should-fix,
+  cero blockers. Panel registrado.
+- De paso, la rama ContrasenaInvalida del endpoint quedó ejercitada
+  (L28 de ronda 1 cerrado por el test L25).
+- Controls: tests ✅ 91/91 · build ✅ · security ✅ (lente del panel) ·
+  traceability ✅ (AC1, AC7, AC8, AC9 a nivel de gate de T004).
+
+## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
+- **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
+  autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,
+  2 rondas).
+- **Pendientes para la próxima sesión** (el dueño decidió parar aquí):
+  T005 (protección de endpoints de datos con requireSesion + cliente
+  scoped), T006 (bloqueo cableado al login), T007 (recuperación), T008
+  (claim del huérfano), T009 (login.html), T010 (reset.html + gating),
+  T011 (verificación en vivo), T012 (cierre).
+- Suite: **91/91 verde**. Rama feature/003-login-usuarios con 14 commits.
+- Reanudar: leer este ledger + `git log feature/003-login-usuarios`;
+  despachar T005 con su fila del plan y su bloque de Interfaces.
