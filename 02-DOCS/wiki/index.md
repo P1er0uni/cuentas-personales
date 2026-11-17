@@ -8,7 +8,9 @@
 | Features (un documento por feature) | `02-DOCS/wiki/sdd/features/` |
 | Spec 001 — Exportar movimientos a CSV | `02-DOCS/wiki/sdd/specs/001-exportar-csv.md` |
 | Spec 002 — SDD disparado por GitHub Issue | `02-DOCS/wiki/sdd/specs/002-sdd-desde-issue.md` |
+| Spec 003 — Login de usuarios | `02-DOCS/wiki/sdd/specs/003-login-usuarios.md` |
 | Plan 001 — Exportar movimientos a CSV | `02-DOCS/wiki/sdd/plans/001-exportar-csv.md` |
+| Plan 003 — Login de usuarios | `02-DOCS/wiki/sdd/plans/003-login-usuarios.md` |
 | Revisión 001 — Exportar movimientos a CSV (closing, 2 rondas) | `02-DOCS/wiki/sdd/reviews/001-exportar-csv.md` |
 | Perfil de usuario del harness | `02-DOCS/wiki/harness/user-profile.md` |
 | Decisiones del harness | `02-DOCS/wiki/harness/decisions.md` |

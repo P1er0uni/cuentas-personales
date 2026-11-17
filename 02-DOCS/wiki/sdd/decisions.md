@@ -79,3 +79,68 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   de privacidad que la migración misma había violado; un documento de
   non-negotiables que miente no protege nada. El re-cierre de main restaura el
   flujo branch→PR→ship que el piloto debe medir.
+
+## 2026-11-17 — Feature 003 (login): alcance decidido en la ronda de frontera
+
+- **Decisión**: el login es **multi-usuario real** con registro abierto y
+  aislamiento de datos por cuenta (RLS en la base, no solo filtro del
+  servidor); el movimiento preexistente lo hereda la primera cuenta que se
+  registre; el ciclo corre en modo **paso a paso** (aprobación del dueño en
+  cada fase).
+- **Opciones consideradas**: contraseña única compartida (descartada: sin
+  cuentas ni aislamiento) / login sin aislamiento (descartada: cada quien
+  vería las finanzas del otro); registro cerrado (descartado: más ceremonia
+  que valor en el piloto); dato actual huérfano o borrado (descartados por el
+  dueño); autopilot (descartado: el dueño quiere aprobar cada fase).
+- **Por qué**: es la primera feature de producto tras la migración a Supabase
+  y la primera que ejercita la constitución v1.1.0 (P7: RLS) y el camino
+  always-human de auth; el multi-usuario real es lo que hace que valga.
+
+## 2026-11-17 — Feature 003 (revisión de spec): el bloqueo por intentos fallidos entra al alcance
+
+- **Decisión**: el dueño revisa el draft de la spec y contradice la decisión
+  diferida — el **bloqueo por intentos fallidos** (anti fuerza bruta) pasa al
+  alcance del ciclo: Goals, Behaviour y un criterio de aceptación nuevos.
+  Los parámetros (nº de intentos y duración del bloqueo) quedan como pregunta
+  abierta para `clarify` (recomendación: 5 intentos → 15 min, por email).
+- **Opciones consideradas**: mantener diferido (elegido primero por «solo lo
+  necesario»; revertido por el dueño) vs. incluirlo (elegido: sin bloqueo, un
+  atacante puede probar credenciales por fuerza bruta sin costo).
+- **Por qué**: el login sin límite de intentos es la puerta más fácil de
+  atacar de toda la app; el dueño lo consideró parte del requisito, no un
+  extra.
+
+## 2026-11-17 — Feature 003 (clarify): parámetros cerrados y recuperación entra al alcance
+
+- **Decisión**: ronda de clarify con el dueño — contraseña con longitud
+  mínima de 8 (sin complejidad teatral); bloqueo tras 5 intentos fallidos por
+  15 minutos, contado por email; sesión persistente hasta logout confirmada;
+  y la **recuperación de contraseña por email entra al alcance** (estaba como
+  non-goal; el dueño la pidió dentro del ciclo). El cambio de contraseña
+  autenticado sigue fuera.
+- **Opciones consideradas**: contraseña 8 vs 12 vs sin mínimo; bloqueo 5→15
+  vs 3→30 vs 10→5; sesión persistente vs con expiración; recuperación dentro
+  vs fuera del ciclo.
+- **Por qué**: el dueño prefiere margen razonable contra fuerza bruta sin
+  fricción de usuario legítimo, y considera la recuperación parte de un login
+  completo, no un extra.
+
+## 2026-11-17 — Feature 003 (plan): identidad en Supabase Auth y aislamiento por cliente scoped al usuario
+
+- **Decisión**: la arquitectura del login usa **Supabase Auth** como dueño
+  de identidades (hashing, JWT, email de recuperación — nunca tocamos
+  contraseñas) y accede a los datos con un **cliente Supabase scoped al
+  usuario por petición**, de modo que el aislamiento lo imponen las
+  **políticas RLS en la base** (`auth.uid() = user_id`), no un filtro en el
+  servidor. Sesión propia en memoria del servidor (cookie httponly con id
+  aleatorio → tokens Supabase); bloqueo anti fuerza bruta con lógica pura
+  inyectable; la service key queda reservada a migración y al claim del dato
+  huérfano por la primera cuenta.
+- **Opciones consideradas**: (a) service key + `WHERE user_id` en el
+  servidor — rechazada: la spec exige aislamiento real en la base y un bug
+  de filtro filtra finanzas ajenas; (b) tabla `usuarios` propia con bcrypt —
+  rechazada: re-implementa hashing/reset/bloqueo ya dados y auditados, y
+  complica keyear RLS sin `auth.uid()`.
+- **Por qué**: cumple la constitución P7 y la spec §What it must respect al
+  pie de la letra; minimiza superficie criptográfica propia en un camino
+  always-human.
