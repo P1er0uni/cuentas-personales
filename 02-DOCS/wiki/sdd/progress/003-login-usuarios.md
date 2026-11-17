@@ -107,3 +107,20 @@
 ## Estado de suite tras ronda 2 — 2026-11-17
 - `npm test`: **76/76 verde, 8 archivos** (51 base + 13 auth + 12 session).
 - Ronda 2 de revisión abierta para T002 y T003 (solo diff nuevo).
+
+## T003 — cierre ronda 2 — 2026-11-17
+- status: **complete**
+- Panel de ronda 2 (solo diff nuevo 3a708aa): security **PASS** (7 vectores)
+  · correctness **PASS** (8 ataques) · tests **PASS** (5 mutantes de ronda 1
+  muertos + mutantes nuevos del fix muertos). Cero hallazgos en los tres
+  lentes. Panel registrado en 65b048b.
+- Controls: tests ✅ 12/12 session, suite 76/76 · build ✅ · security ✅
+  (lente del panel) · traceability ✅ (AC6/AC9: store probado; endpoints en
+  T004/T005).
+
+## T002 — ronda 2 de revisión (parcial) — 2026-11-17
+- correctness y security convergen en **1 should-fix**: `mantenerCota`
+  evicta la entry más antigua sin verificar bloqueo activo — un atacante
+  bloqueado puede des-bloquearse llenando el Map con ~1000 emails
+  desechables (bypass introducido por el propio fix de la cota). Pendiente:
+  lente tests de ronda 2; luego consolidate + verify + fix en ronda 3.
