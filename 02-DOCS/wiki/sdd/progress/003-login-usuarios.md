@@ -195,3 +195,22 @@
   autorización humana de D1 la supersede; el panel final se despachó sobre
   el diff nuevo y sus veredictos se registran aquí (el ledger local no abre
   ronda 4).
+
+## T002 — cierre ronda 4 — 2026-11-17
+- status: **complete**
+- Panel de ronda 4 (diff e4912d1): security **PASS** (7 vectores; bypass de
+  saturación genuinamente cerrado; crecimiento acotado por tasa y
+  auto-curable) · correctness **PASS** (12 ataques; todas las afirmaciones
+  del fix verificadas contra el código) · tests 1 should-fix (L24: el brazo
+  de evicción por saturación sin pin — mutante `if (true) continue`
+  sobrevivía) → verificado con **prueba empírica** (mutante corrido,
+  escenario reproducido) → **CONFIRMED**.
+- Fix L24: pin F6 (test redactado y verificado contra el mutante por el
+  finding-verifier; transcrito por el orquestador por ser adición mecánica
+  de un test ajeno) — commit **ca85066**. Auth 17/17; suite **80/80**.
+- Controls: tests ✅ 80/80 · build ✅ · security ✅ (lente del panel) ·
+  traceability ✅ (AC10: bloqueo probado unit-level; conductual en T011).
+- Nota del ledger: aviso de gap de evidencia en AC10 (objeciones del lente
+  tests en rondas 1–4). No se debilitó el criterio; la profundidad de las
+  objeciones refleja lo sutil del contrato de bloqueo. Prueba conductual en
+  T011 en vivo.
