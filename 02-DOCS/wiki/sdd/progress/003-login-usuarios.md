@@ -227,3 +227,26 @@
   deliberado); logout idempotente (204 siempre, cookie expirada siempre).
 - risk: tier 2 (src/auth.js + test/login-api.test.js, clase auth) — panel
   de 3 despachado (ronda 1).
+
+## T004 — ronda 1 de revisión — 2026-11-17
+- Panel: security 1 should-fix (L25: registro reenvía mensaje crudo de
+  Supabase — fuga de internals) · correctness PASS + 1 question sancionado
+  por AC7 (login colapsa caída de servicio a 401 genérico) · tests 1
+  should-fix (L26: cookies sin HttpOnly/SameSite verificados en el gate de
+  T004) + 3 questions (mock-swallowing aceptado por el plan §5; rama
+  ContrasenaInvalida no ejercitada L28; llamada auth.logout no testeada).
+- Consolidate: 5 únicos; L25 y L26 verificados → **2 CONFIRMED con
+  reproducción** (mock de rate-limit para la fuga; mutante sin HttpOnly
+  sobrevive T004 aunque muere en T003 — el gate de T004 no prueba su
+  propio contrato).
+
+## T004 — ronda 2 (fixes L25/L26) — 2026-11-17
+- Fix integrado: **987f9d1** — `auth.registrar` lanza `ContrasenaInvalida()`
+  genérico (el crudo no sale del wrapper); el endpoint responde
+  `400 {errores: ['no se pudo crear la cuenta']}` fijo; test L25 nuevo
+  (fake con rate-limit crudo → RED contra el código viejo, GREEN tras el
+  fix — también ejercita la rama ContrasenaInvalida, cerrando L28 de paso);
+  pins HttpOnly/SameSite en los tests de cookie de registro y login.
+- RED: 1 failed | 10 passed (la fuga llegaba al cliente) → GREEN: 11/11;
+  suite **91/91**. L25/L26 `fixed` en ledger. Ronda 2 abierta, panel
+  despachado sobre el diff nuevo.
