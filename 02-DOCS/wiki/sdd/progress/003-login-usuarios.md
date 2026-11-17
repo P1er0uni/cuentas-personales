@@ -141,3 +141,17 @@
   test F3 corregido (base SIGUE bloqueada tras llenar el Map), pin del guard
   de registrarFallo con entry expirada presente, pin del barrido con
   expirada reclamada antes que una viva.
+
+## T002 — ronda 3 (fix del BLOCKER) — 2026-11-17
+- Fix integrado: **3ae68df** — evicción respeta bloqueo activo (víctima =
+  más antigua NO bloqueada; todas bloqueadas → el Map crece, nunca se
+  des-bloquea a un atacante); test F3 corregido (asienta que base SIGUE
+  bloqueada — antes asertaba el bug); pins F1 (guard con entry expirada
+  presente) y F2 (barrido con DOS expiradas para observabilidad). El
+  implementador verificó los mutantes ejecutándolos y revirtiéndolos.
+- RED honesto: test F3 corregido falló contra el código buggy
+  (`expected null not to be null`). Auth 15/15; suite completa **78/78**.
+- Decisión registrada por el implementador en decisions.md («Evicción
+  respeta el bloqueo activo»), integrada con el cherry-pick.
+- Panel de ronda 3 (final) despachado sobre el diff nuevo. Si no converge:
+  T002 se aparca en la cola de decisiones (regla del presupuesto de 3).
