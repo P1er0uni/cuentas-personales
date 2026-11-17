@@ -183,3 +183,15 @@
   con TDD completo y revisión. Entrada cerrada por el humano.
 - **Evidencia**: reproducción del verificador (transcripción de la sesión);
   hallazgo L19 en el ledger de revisión.
+
+## T002 — ronda 4 (autorizada por el dueño, D1) — 2026-11-17
+- Fix integrado: **e4912d1** — `mantenerCota(ahora, claveRecienInsertada)`
+  con skip en el loop de evicción; la entry nueva nunca es víctima de su
+  propia inserción. Test F5 nuevo (999 señuelos bloqueados + 5 fallos sobre
+  email nuevo → bloquea), RED honesto contra el código buggy. Auth 16/16;
+  suite **79/79**. Entrada append-only en decisions.md corrigiendo el
+  trade-off (ahora verdadero: bajo saturación total el Map crece).
+- El ledger mecánico de rsc rechazó la ronda 4 (regla de 3 rondas) — la
+  autorización humana de D1 la supersede; el panel final se despachó sobre
+  el diff nuevo y sus veredictos se registran aquí (el ledger local no abre
+  ronda 4).
