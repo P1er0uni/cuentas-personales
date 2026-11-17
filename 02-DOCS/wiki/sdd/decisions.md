@@ -59,3 +59,23 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   y editar directo — elegida por el dueño.
 - **Por qué**: cambio de solo documentación, revisable a ojo en el diff;
   la fricción del tier 2 no compra protección adicional aquí (P7).
+
+## 2026-11-17 — Enmienda v1.1.0 de la constitución: alineación tras la migración a Supabase
+
+- **Decisión**: el dueño revisa la constitución y la enmienda (v1.0.0 →
+  v1.1.0): P1 stack swap better-sqlite3 → Supabase (PostgreSQL); P7
+  privacidad reescrita — los datos viven en la nube de Supabase con RLS
+  activado y la service key solo en el servidor; P9 y DoD sin referencias a
+  SQLite/`data/`. P5 ratificada sin cambios: **main se re-cierra** — el unlock
+  del 2026-11-16 queda como excepción registrada, no como estado permanente.
+  Auth pasa a camino always-human en REVIEW.md, con `src/db.js` elevado en
+  `.rsc/sello-config.json` → `risk.raise` (los archivos `auth|login|session`
+  ya eran tier 2 en la tabla por defecto de `rsc risk`).
+- **Opciones consideradas**: P5 — re-cerrar (elegida) vs enmendar a abierta;
+  P7 — aceptar nube con RLS (elegida) vs exigir datos solo locales (implicaba
+  revertir la migración); always-human auth — agregar ya antes del login
+  (elegida) vs esperar a que aterrice la feature.
+- **Por qué**: la constitución citaba un stack que ya no existe y una postura
+  de privacidad que la migración misma había violado; un documento de
+  non-negotiables que miente no protege nada. El re-cierre de main restaura el
+  flujo branch→PR→ship que el piloto debe medir.
