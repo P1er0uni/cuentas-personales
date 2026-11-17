@@ -155,3 +155,31 @@
   respeta el bloqueo activo»), integrada con el cherry-pick.
 - Panel de ronda 3 (final) despachado sobre el diff nuevo. Si no converge:
   T002 se aparca en la cola de decisiones (regla del presupuesto de 3).
+
+## T002 — cierre ronda 3 — 2026-11-17
+- Panel: security PASS + 1 question (saturación) · correctness **1 BLOCKER**
+  (mismo escenario, trazado línea a línea) · tests PASS + 2 nits + 2
+  questions (límites exactos y orden sin pin — repetidos o menores).
+- Consolidate: 4 únicos; el BLOCKER verificado → **CONFIRMED con
+  reproducción** (script externo: con 999 señuelos bloqueados, 10 fallos
+  sobre un email nuevo no bloquean; baseline en Map vacío: 5 fallos
+  bloquean). El trade-off documentado en decisions.md era inalcanzable
+  (falso). Registrado como L19.
+
+## Decision queue — 003-login-usuarios
+
+### D1 — T002 ronda 4 (blocker de saturación) — CERRADA por el dueño
+- **Kind**: blocking · **Task**: T002 · **Tier**: 2.
+- **Pregunta**: el fix de ronda 3 cerró el bypass de des-bloqueo pero abrió
+  el inverso (fallos de emails nuevos se pierden bajo saturación; AC10
+  desactivada para ellos). Presupuesto de 3 rondas agotado. ¿Fix extra,
+  aparcar, o aceptar residual?
+- **Opciones**: fix ahora (una línea: la evicción salta la clave recién
+  insertada) / aparcar T002 y seguir con T04 / aceptar como riesgo residual
+  (question según el lente security: setup ~5000 peticiones, ventana 15 min).
+- **Recomendación**: fix ahora.
+- **Decisión del dueño (2026-11-17)**: **«arréglalo, manteniendo los
+  estándares de desarrollo que estábamos usando»** — ronda 4 autorizada
+  con TDD completo y revisión. Entrada cerrada por el humano.
+- **Evidencia**: reproducción del verificador (transcripción de la sesión);
+  hallazgo L19 en el ledger de revisión.
