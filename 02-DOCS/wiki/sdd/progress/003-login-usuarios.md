@@ -86,3 +86,24 @@
 - Fix de ronda 2 despachado (worktree): pins anti-mutante (UUID v4 regex +
   unicidad, destruir multi-sesión, Path=/, contador de siguiente) y trim
   individual de clave/valor en parsearCookie (único cambio de producción).
+
+## T002 — ronda 2 (fixes) — 2026-11-17
+- Fix integrado: **6136262** — normalización de email (trim+lowercase) en las
+  tres funciones; `registrarFallo` no-op durante bloqueo activo;
+  `decidirBloqueo` elimina entry al expirar (ciclo fresco de 5); cota
+  `MAX_REGISTRO = 1000` con barrido de expiradas + evicción de la más
+  antigua. 7 tests nuevos (4 de comportamiento en RED primero; 3 guard
+  tests anti-mutante). Auth 13/13.
+- Nota: el developer registró también la decisión en decisions.md desde su
+  worktree; se descartó ese commit (28a39f6) porque la entrada ya existía en
+  el árbol principal — sin duplicar el log.
+
+## T003 — ronda 2 (fixes) — 2026-11-17
+- Fix integrado: **3a708aa** — pins anti-mutante (50 ids únicos con formato
+  UUID v4; destruir multi-sesión con B sobreviviendo; Path=/ asentado;
+  contador de siguiente = 1) y parseo de cookie tolerante a espacios (RED →
+  fix → GREEN). Session 12/12.
+
+## Estado de suite tras ronda 2 — 2026-11-17
+- `npm test`: **76/76 verde, 8 archivos** (51 base + 13 auth + 12 session).
+- Ronda 2 de revisión abierta para T002 y T003 (solo diff nuevo).
