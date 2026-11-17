@@ -217,3 +217,34 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   reclama ambas (la 2.ª arranca fresca luego) y la evicción sola solo reclama
   una (la 2.ª lingería con `fallos=5` y un fallo posterior la re-bloquearía al
   instante). Esa diferencia es lo que el pin asienta.
+
+## 2026-11-17 — Fix ronda 4: la entry recién insertada no se evicta a sí misma (feature: 003, T002, ronda 4)
+
+- Contexto: BLOCKER confirmado y reproducido por el verificador —
+  `registrarFallo` inserta la entry nueva (con `bloqueadoHasta === null`) y
+  **después** llama `mantenerCota`. La entry nueva es siempre candidata a
+  víctima de evicción. Con el Map saturado de entries activamente bloqueadas
+  (atacante bloquea ~999 emails señuelo con 5 fallos c/u), la evicción salta
+  todas las bloqueadas y encuentra SOLO la nueva → la evicta →
+  `entry.fallos += 1` corre sobre el objeto detached → el fallo se pierde →
+  ningún email nuevo puede acumular fallos → AC10 desactivada para emails
+  nuevos durante la ventana de saturación. El verificador lo reprodujo: con
+  saturación, 10 fallos no bloquean; sin ella, 5 bastan.
+- Decisión: `mantenerCota` recibe la clave recién insertada y el loop de
+  evicción la salta (`if (k === claveRecienInsertada) continue`). Así la
+  entry nueva NUNCA es víctima de su propia inserción. Mínimo código: un
+  parámetro con default `null` (backward-compatible) y un `continue`.
+- Trade-off materializado: la entrada «Evicción respeta el bloqueo activo»
+  (ronda 3) documenta que «si todas las entries están bloqueadas activamente,
+  el Map crece temporalmente». **Antes de este fix ese trade-off era
+  inalcanzable** — la entry nueva siempre se evictaba, así que el Map nunca
+  crecía por encima de MAX_REGISTRO. **Con este fix, el crecimiento temporal
+  del Map bajo saturación total se materializa de verdad**: si todas las
+  demás entries están bloqueadas activamente, el Map crece a lo sumo hasta
+  que las ventanas expiren y el barrido reclame. Nunca se pierde un fallo,
+  nunca se des-bloquea a un atacante. Autorizado explícitamente por el dueño
+  (el presupuesto automático de 3 rondas estaba agotado; el humano cerró la
+  entrada de la cola de decisiones con un «sí»).
+- Por qué: la cota protege contra DoS de memoria, pero no a costa de regalar
+  el bloqueo ni de perder fallos legítimos; el crecimiento temporal acotado
+  por la ventana de bloqueo es aceptable y ahora es real.
