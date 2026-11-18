@@ -326,3 +326,27 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
 - **Conteo**: el comando enmendado pasa 10 tests (8 recuperación + 2 D2), no
   9 como se anticipó — el test nuevo de F1 (camino de error de AC12) también
   coincide con "recuperar". El filtro es correcto; el conteo creció con F1.
+
+## 2026-11-18 — T008: claim del dato huérfano — dónde vive la detección de primera cuenta y trade-offs (feature: 003-login-usuarios, task: T008)
+
+- **Dónde vive `esPrimeraCuenta`**: en `src/auth.js` (como `auth.esPrimeraCuenta()`),
+  no en `src/db.js`. Razón: consulta `auth.users` (estado de Auth) y el fake de
+  auth ya trackea `usuarios` en memoria — el fake puede implementarlo trivialmente
+  como `usuarios.size === 0`. Usa el service key vía lazy import de `src/db.js`
+  (`supabase.auth.admin.listUsers()`), consistente con `auth.logout` que ya hace
+  lo mismo. `claimHuerfanos` vive en `src/db.js` (sobre el singleton service key)
+  porque opera sobre la tabla `movimientos`.
+- **Por qué el claim no rompe el registro si falla**: el claim se invoca en un
+  try/catch separado dentro del handler de registro. Si `claimHuerfanos` lanza,
+  se loguea server-side (`console.error`) y el registro prosponde normalmente
+  (201 + cookie). La cuenta ya existe en Supabase Auth; el claim es
+  recuperable y verificable posteriormente (T011, verificación en vivo).
+  Trade-off: la fila huérfana quedaría sin dueño hasta una intervención manual
+  — aceptable porque el claim es una sola vez y verificable.
+- **Trade-off de la carrera (evaluar el conteo antes del signUp)**:
+  `esPrimeraCuenta()` se evalúa ANTES de `auth.registrar()` para minimizar la
+  ventana de carrera. Dos registros concurrentes podrían ver ambos 0 usuarios
+  y ambos intentar el claim. Esto es seguro porque el claim es idempotente
+  (`WHERE user_id IS NULL`): el segundo claim no encuentra filas huérfanas
+  (el primero ya las adoptó) y devuelve 0. Registro + claim no son
+  transaccionales entre sí — aceptable, registrado en los riesgos del plan.
