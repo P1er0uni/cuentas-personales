@@ -271,3 +271,46 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   enviado no coincide con el JWT, `WITH CHECK` lo rechaza igual (defensa en
   profundidad). El trigger (opción 2) queda como alternativa futura si se
   quiere un cinturón extra a nivel de base.
+
+## 2026-11-18 — confirmarRecuperacion devuelve { usuario } para destruir sesiones (feature: 003-login-usuarios, task: T007)
+
+- Contexto: `POST /api/recuperar/confirmar` debe destruir todas las sesiones
+  activas de la cuenta tras completar el reset (AC11). Para ello necesita el
+  `usuarioId` — pero el endpoint solo recibe `{ codigo, password }`, no sabe
+  de quién es la cuenta. El wrapper `auth.confirmarRecuperacion` sí puede
+  obtenerlo del SDK: `verifyOtp({ token_hash, type: 'recovery' })` devuelve
+  `{ data: { user } }` con el usuario verificado.
+- Options:
+  1. `confirmarRecuperacion` devuelve `void` y el endpoint obtiene el
+     usuarioId por separado (p. ej. decodificando el JWT del código).
+  2. `confirmarRecuperacion` devuelve `{ usuario }` — el wrapper ya tiene el
+     usuario de `verifyOtp` y lo retorna al endpoint.
+  3. `confirmarRecuperacion` devuelve el usuarioId plano (string).
+- Decision: opción 2 — `confirmarRecuperacion` devuelve `{ usuario: { id, email } }`.
+- Why: el wrapper ya obtiene el usuario en `verifyOtp`; devolverlo evita
+  decodificar JWTs o hacer una segunda llamada. La forma `{ usuario }` es
+  consistente con `registrar` y `login` (que también devuelven `{ usuario, ... }`).
+  El endpoint usa `usuario.id` para `sesion.destruirTodasDe(usuario.id)`.
+
+## 2026-11-18 — AuthNoDisponible: errores transitorios no cuentan bloqueo (feature: 003-login-usuarios, task: T007)
+
+- Contexto: `auth.login` lanzaba `CredencialesInvalidas` para CUALQUIER error
+  de `signInWithPassword` — incluidos rate limits, red, timeouts. El bloqueo
+  de T006 contaba esos errores transitorios como fallos del usuario: una
+  víctima con credenciales CORRECTAS podía quedar bloqueada tras 5 incidentes
+  de Supabase.
+- Options:
+  1. Mantener el comportamiento actual (todo error = `CredencialesInvalidas`).
+  2. Distinguir en `auth.login`: "Invalid login credentials" →
+     `CredencialesInvalidas`; cualquier otro error → nueva clase
+     `AuthNoDisponible`. En `app.js`, `AuthNoDisponible` → 401 genérico
+     (AC7 intacto) SIN `registrarFallo`.
+  3. Reintentar automáticamente los errores transitorios antes de responder.
+- Decision: opción 2.
+- Why: la opción 1 deja el bug (víctima bloqueada por fallos ajenos). La
+  opción 3 añade complejidad y latencia impredecible; el reintento pertenece
+  a la capa de infraestructura, no al handler. La opción 2 es mínima: una
+  nueva clase exportada, un regex sobre `error.message` (Supabase usa
+  "Invalid login credentials" para credenciales incorrectas), y un branch
+  explícito en el catch de login que devuelve 401 genérico sin tocar el
+  contador. AC7 se preserva: mismo 401 y mismo cuerpo exista o no el email.
