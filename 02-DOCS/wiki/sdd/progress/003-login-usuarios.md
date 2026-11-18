@@ -377,6 +377,65 @@
 - Nota: la verificación CONDUCTUAL de RLS (usuario real ve solo lo suyo)
   sigue siendo T011 en vivo, como manda el plan §5.
 
+## T006 — 2026-11-18
+- status: built
+- red: 4 tests nuevos (describe «T006 — bloqueo…») fallando: esperaban 429
+  y recibían 200 (el endpoint no tenía bloqueo).
+- green: `POST /api/login` cableado al bloqueo puro de T002:
+  `decidirBloqueo(email, Date.now())` antes del intento → 429
+  `{"error": "cuenta bloqueada, reintenta en N minutos"}` (mismo cuerpo con
+  credenciales correctas); `CredencialesInvalidas` → `registrarFallo` + 401;
+  éxito → `reiniciar` + 200. Guard `typeof email === 'string'` antes del
+  bloqueo. El fake del test ganó el espejo en memoria del contrato de
+  bloqueo (el test mockea src/auth.js entero; la lógica pura ya tiene sus
+  17 tests unitarios).
+- files: `src/app.js`, `test/login-api.test.js` · commit worktree 1a8ff6c →
+  cherry-pick **b5621de**. Suite 110/110.
+- decisiones: el 5.º fallo responde 401 (el bloqueo se fija en el handler de
+  error) y el 429 aparece en el 6.º intento — consistente con el contrato
+  «al 6.º intento dentro de la ventana → Bloqueado».
+- risk: tier 2 (clase auth) — panel de 3 (ronda 1).
+
+## T006 — cierre ronda 1 — 2026-11-18
+- status: **complete**
+- Panel de ronda 1 (diff b5621de): correctness **PASS** (12 ataques: orden
+  de operaciones, semántica 5.º/6.º, guard protector, sin doble conteo
+  concurrente, AC7 intacto) · security **PASS** + 1 question · tests
+  **PASS** + 1 nit (4 mutantes corridos: quitar decidirBloqueo/registrarFallo/
+  reiniciar/hardcodear mensaje → todos mueren). Cero should-fix, cero
+  blockers.
+- Consolidate: 2 únicos. F1 [nit]: mutante «hardcode 15» sobrevive a nivel
+  de integración (la lógica pura dinámica sí está probada en auth.test.js;
+  el gap es solo del cableado, requeriría reloj fake inyectado — anotado,
+  sin fix). F2 [question]: `auth.login` (T004) conflata errores internos de
+  Supabase en `CredencialesInvalidas` → un error transitorio con credenciales
+  correctas suma al contador de bloqueo de la víctima. Causa raíz fuera del
+  alcance de T006 → entrada D2 en la cola de decisiones (review-after).
+- Controls: tests ✅ 110/110 · build ✅ · security ✅ (lente del panel) ·
+  traceability ✅ (AC10: cableado probado por 4 tests con mutantes muertos;
+  lógica pura 17 tests; conductual en vivo en T011).
+
+## Decision queue — 003-login-usuarios
+
+### D2 — conflation de errores internos en CredencialesInvalidas — review-after
+- **Kind**: review-after · **Task**: T004 (causa raíz) / T006 (síntoma) ·
+  **Tier**: 2.
+- **Pregunta**: `auth.login` lanza `CredencialesInvalidas` para CUALQUIER
+  error de `signInWithPassword` (rate limit, red, timeout), no solo
+  credenciales incorrectas. El bloqueo de T006 cuenta esos errores
+  transitorios como fallos del usuario → una víctima con credenciales
+  correctas puede quedar bloqueada tras 5 incidentes de Supabase.
+- **Opciones**: (a) distinguir en `auth.login` credenciales incorrectas
+  (mensaje «Invalid login credentials») de errores internos (nueva clase,
+  mismo 401 genérico sin `registrarFallo`); (b) aceptar como residual
+  (requiere que Supabase falle 5 veces en la ventana).
+- **Recomendación**: (a) — fix pequeño, preserva AC7 (401 idéntico), cierra
+  el espíritu de AC10 («5 intentos fallidos», no «5 errores del servidor»).
+- **Estado (2026-11-18, autopilot)**: plegado al alcance de T007 (que ya
+  toca `src/auth.js` para los wrappers de recuperación), con decisión
+  registrada en decisions.md. El dueño lo lee en review-after; si prefiere
+  (b), se revierte ese bloque de T007.
+
 ## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
 - **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
   autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,
