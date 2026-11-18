@@ -535,6 +535,138 @@
   security ✅ (XSS revisado: textContent; sin recursos externos) ·
   traceability ✅ (AC6/AC9/AC11 a nivel de página; conductual en vivo T011).
 
+## T008 — 2026-11-18
+- status: built
+- red: 3 tests «hereda» fallando (claim nunca invocado; segunda cuenta
+  contaba claim; idempotencia devolvía 1 en vez de 0).
+- green: `db.claimHuerfanos(usuarioId)` en `src/db.js` (singleton service
+  key: UPDATE ... WHERE user_id IS NULL, devuelve n); `auth.esPrimeraCuenta()`
+  en `src/auth.js` (admin.listUsers → 0 usuarios); cableado en
+  `POST /api/registro`: esPrimeraCuenta evaluada ANTES del signUp, claim en
+  try/catch separado (su fallo no rompe el registro — decisión en
+  decisions.md). Fakes ampliados con siembra de huérfano y tracking.
+- files: `src/db.js`, `src/auth.js`, `src/app.js`, `test/login-api.test.js`,
+  `decisions.md` · commit worktree 574f679 → cherry-pick **5ebf63f**.
+  Suite 123/123.
+- risk: tier 2 (clase auth — service key) — panel de 3 (ronda 1).
+
+## T008 — ronda 1 de revisión — 2026-11-18
+- Panel: security **PASS** (10 vectores: sin inyección de user_id desde el
+  body, service key confinado, sin fuga) · correctness **PASS** (13 ataques)
+  + 1 question · tests **1 should-fix** (7 mutantes: 6 cazados).
+- Consolidate: 2 únicos. F1 [should-fix] verificado → **CONFIRMED con
+  reproducción**: el try/catch del claim era código muerto en la suite (fake
+  nunca lanzaba; mutante sin try/catch sobrevivía 123/123 — el camino
+  «claim falla → registro sigue 201» sin guarda). F2 [question]: la
+  justificación de la carrera en decisions.md confundía idempotencia (nadie
+  reclama dos veces) con atribución correcta (bajo concurrencia el huérfano
+  podría quedar del segundo) — trade-off ya aceptado en el plan §7.
+
+## T008 — ronda 2 (fix F1 + corrección F2) — 2026-11-18
+- Fix integrado: **5eb3a4e** (por el orquestador, mecánico) — flag
+  `claimFalla` + `__fallarClaim` en el fake; test (d): claim lanza →
+  registro responde 201 + cookie + sesión funcional y la huérfana SIGUE
+  huérfana. RED honesto: mutante (sin try/catch) aplicado → test (d) muere
+  (500 vs 201) → revertido → verde. Entrada correctiva en decisions.md
+  (atribución vs idempotencia, trade-off mantenido). Suite **124/124**.
+
+## T008 — cierre ronda 2 — 2026-11-18
+- status: **complete**
+- Panel de ronda 2 (diff 5eb3a4e, solo tests+docs): correctness **PASS**
+  (8 ataques: asertos correctos, flag sin leakage, RED trazado, producción
+  intacta) · security **PASS** (4 vectores: flag confinado al mock, camino
+  de error estructuralmente sin fuga — el catch no toca res) · tests
+  **PASS** (mutante reproducido → test (d) muere; no vacuo; done-check
+  `-t "hereda"` ahora 4 tests; 5 mutantes adicionales del fix, todos
+  cazados). Cero hallazgos en los tres lentes.
+- Controls: tests ✅ 124/124 · build ✅ · security ✅ (lente del panel) ·
+  traceability ✅ (AC2: primera hereda / segunda no / idempotencia / camino
+  de error con guarda; el claim REAL contra la base en vivo es T011).
+
+## T011 — verificación en vivo — 2026-11-18
+- status: **complete** (con 2 bloqueos de config documentados en la cola de
+  decisiones D3/D4 — nada de lo bloqueado es programable desde el código)
+- Método: servidor local (`npm start`) contra el proyecto Supabase real
+  `getjrfqsirqflixdkdvl`; cuentas de test `t011-ana` / `t011-bruno` creadas
+  para la ocasión (confirmadas vía admin API por el bloqueo D3).
+- Evidencia (salidas HTTP reales):
+  - login A y B → 200 + cookie; GET /api/sesion → 200 con el usuario.
+  - A crea movimiento → **201 con su user_id** (RLS WITH CHECK acepta el
+    INSERT — la guarda de T005 funciona contra la base real); A ve solo lo
+    suyo en movimientos/saldo/resumen/CSV; B ve solo lo suyo (aislamiento
+    real por las políticas RLS, no por filtro del servidor).
+  - 6 endpoints de datos sin cookie → 401.
+  - AC7: password erróneo vs email inexistente → idéntico 401.
+  - AC9: logout → 204; sesión muerta → 401.
+  - AC11: enlace real (admin generateLink, params `token, type,
+    redirect_to`) → confirmar con el token → 204; password vieja → 401;
+    nueva → 200; sesión previa destruida.
+  - AC12: recuperar con email existente vs inexistente → idéntico
+    `200 {"ok": true}`; código falso → 400.
+  - AC10: 5 fallos (401×5) → 6.º con password CORRECTA → 429 «cuenta
+    bloqueada, reintenta en 15 minutos».
+  - AC2: `db.claimHuerfanos` real → 1 fila huérfana reclamada (UPDATE ...
+    WHERE user_id IS NULL vía service key, verificado por SQL: la fila
+    preexistente id 3 quedó con el user_id de t011-ana).
+- Hallazgo en vivo corregido: el enlace real usa `?token=...` y reset.html
+  solo leía `code`/`token_hash` → fix **eea3f0f** (reset.html acepta los
+  tres; verificado que el `token` del enlace sirve como código en
+  verifyOtp).
+- Limpieza: `t011-bruno` eliminada (su movimiento de test cayó por
+  CASCADE). `t011-ana` se CONSERVA: es dueña de la fila preexistente tras
+  el claim — borrarla destruiría el dato del piloto (ver D4). El intento
+  de restaurar la fila a NULL por SQL fue denegado por el clasificador de
+  permisos (modificación de dato preexistente) — decisión correcta.
+- No verificado en vivo (bloqueado por D3): registro → 201 + cookie
+  (AC1-live) y email duplicado → 400 (AC8-live); entrega real del email
+  de recuperación por SMTP (el enlace se generó por admin API — mismo
+  formato que el del email).
+
+## Decision queue — 003-login-usuarios (adiciones)
+
+### D3 — confirmación de email activada en Supabase — blocking (config)
+- **Kind**: blocking · **Task**: T011 · **Tier**: 2.
+- **Pregunta**: el proyecto tiene «Confirm email» ACTIVADO (default). El
+  signUp real crea la cuenta pero no devuelve sesión → `POST /api/registro`
+  responde 500. No existe herramienta MCP/SQL para el toggle (auth.config
+  inaccesible); es un click del dashboard.
+- **Acción para el dueño**: dashboard → Authentication → Sign In /
+  Providers → Email → desactivar «Confirm email». Tras el toggle, verificar
+  AC1-live (registro → 201 + cookie) y AC8-live (duplicado → 400) —
+  segundos de prueba con curl.
+- **Evidencia**: log del servidor (`data.session` null → TypeError);
+  count de auth.users subió de 1 a 2 con el registro fallido (la cuenta se
+  creó sin sesión).
+
+### D4 — fila preexistente reclamada por la cuenta de test — review-after
+- **Kind**: review-after · **Task**: T011/T008 · **Tier**: 2.
+- **Estado**: la fila huérfana preexistente (id 3) quedó con
+  `user_id = t011-ana` tras el claim en vivo (prueba real de AC2). La
+  restauración a NULL fue denegada por el clasificador (dato preexistente
+  del dueño). `t011-ana` NO se borró (CASCADE la borraría).
+- **Opciones para el dueño**: (a) dejarla así (t011-ana es dueña del dato
+  del piloto); (b) reasignar a su propia cuenta cuando la registre:
+  `UPDATE movimientos SET user_id = '<su-uuid>' WHERE id = 3;` (o pedírmelo);
+  (c) devolverla a huérfana: `UPDATE movimientos SET user_id = NULL WHERE
+  id = 3;`. Nota: el auto-claim ya no puede dispararse para la cuenta del
+  dueño (existen usuarios), así que la fila no se reclamará sola nunca.
+- **Credenciales de t011-ana** (cuenta de test, creada en esta sesión):
+  `t011-ana@ejemplo.com` / `clave-de-ana-123` (password original; no pasó
+  por recovery).
+
+## T012 — cierre del ciclo — 2026-11-18
+- status: **complete**
+- Suite completa: **124/124 verde** (10 archivos — 51 base + 17 auth +
+  12 session + 41 login-api + 3 db-scoped).
+- Doc de feature `features/003-login-usuarios.md` al día: Registro/Spec/
+  Plan/Tasks/Desarrollo (2 sesiones)/Revisión de agentes/Verificación en
+  vivo/Estado final, y tabla de Métricas completa (una fila por paso +
+  total).
+- Plan: T001–T012 marcadas [x].
+- Pendiente para el dueño: D3 (toggle de confirmación de email — blocking
+  de config), D4 (fila preexistente reclamada por t011-ana), y **ship**
+  (tier 2: merge a main con aprobación humana explícita).
+
 ## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
 - **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
   autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,

@@ -124,13 +124,116 @@ transcripciones — REGLAS-DOCUMENTACION Regla 4) · intervenciones humanas:
 ~6 (frontier, git, D1 ronda 4, scope de parada, 2 aclaraciones) ·
 artefactos: progress ledger, decisions.md (5 entradas), 14 commits.
 
+- Sesión 2 (2026-11-18, **autopilot autorizado por el dueño** — «no
+  solicitarás permisos para nada… dudas bajo tu propio criterio»):
+  **T005–T011 completas** con el ciclo build→risk→review→controls por
+  tarea. T005: `dbPara(tokens, usuario)` + `requireSesion` adjunta el
+  cliente scoped; los 6 endpoints de datos tras el gating; `user_id` en el
+  insert del repo scoped (3 rondas — el hallazgo de ronda 1 se confirmó
+  contra la base real). T006: bloqueo cableado al login (429 con minutos
+  restantes). T007: recuperación pedir/confirmar + fix D2 (errores
+  internos no cuentan bloqueo). T008: claim del huérfano (esPrimeraCuenta
+  + claimHuerfanos idempotente). T009/T010: login.html, reset.html y
+  gating/logout en index.html. T011: verificación en vivo contra
+  Supabase real (ver sección «Verificación en vivo»).
+- Suite final: **124/124 verde** (10 archivos: 51 base + 17 auth + 12
+  session + 41 login-api + 3 db-scoped).
+- Commits de la sesión: uno por tarea/ronda (ver progress ledger);
+  hallazgos de revisión con fix + guarda en cada ronda.
+
+**Métricas del paso (sesión 2)** — Inicio ~09:30 / fin ~17:15 (UTC-5) ·
+duración ~7 h 45 min (T005–T011, en paralelo donde el plan lo permitió) ·
+tokens: ≈1.9M de subagentes (suma de los reportes de uso: developers,
+refuters, verifiers) + orquestador n/d · intervenciones humanas: **1**
+(la autorización de autopilot al reanudar) · artefactos: progress ledger
+(T005–T011 con evidencia), decisions.md (7 entradas nuevas), 16 commits.
+
 ## Revisión de agentes
 
-- Pendiente. Auth es tier 2 (always-human): panel de 3 refuters obligatorio.
+- Sesión 1 (2026-11-17): T001–T004 con panel de 3 refuters por tarea
+  (tier 2); 2 blockers confirmados y cerrados; 1 fuga de internals con
+  doble capa. Ver `progress/003-login-usuarios.md`.
+- Sesión 2 (2026-11-18, autopilot autorizado por el dueño): T005–T010 con
+  su ciclo completo. Resumen por tarea (detalle y evidencia de mutantes en
+  el progress ledger):
+  - **T005** (3 rondas): ronda 1 — should-fix CONFIRMADO contra la base real
+    (insert scoped sin `user_id` → RLS `WITH CHECK` rechazaría todo INSERT
+    autenticado); ronda 2 — fix + should-fix CONFIRMADO (el test guardián
+    ejercía el mock, no el módulo); ronda 3 — test del módulo real con mock
+    del SDK. Panel final: 3 lentes PASS.
+  - **T009** (1 ronda): panel 3 lentes PASS; 2 questions advisory.
+  - **T006** (1 ronda): 3 lentes PASS; 4 mutantes corridos, todos muertos;
+    question D2 (conflation de errores internos) plegada a T007.
+  - **T007** (2 rondas): ronda 1 — 2 should-fix CONFIRMADOS (camino de error
+    de AC12 sin test; done-check ignoraba los tests D2); ronda 2 — guard +
+    enmienda del done-check. Panel final: 3 lentes PASS. D2 cerrada con
+    guardas (`AuthNoDisponible` no cuenta bloqueo).
+  - **T008** (2 rondas): ronda 1 — should-fix CONFIRMADO (camino de error
+    del claim sin guarda) + question (redacción de la carrera); ronda 2 —
+    test del camino de error + corrección de la decisión. Panel final:
+    3 lentes PASS.
+  - **T010** (tier 1, 2 rondas): ronda 1 — tag `</script>` duplicado,
+    shadowing de `confirm`, redirect redundante; ronda 2 — PASS + nit de
+    comentario corregido.
+- Hallazgos acumulados del ciclo: ~45 entradas en el ledger local; 7
+  should-fix confirmados (todos cerrados con fix + guarda); 0 blockers en
+  la sesión 2. Nota operativa: los lentes que mutan el árbol se despachan
+  en secuencia (un stall del watchdog por concurrencia lo motivó).
+
+## Verificación en vivo (T011) — 2026-11-18
+
+Contra el proyecto Supabase real (`getjrfqsirqflixdkdvl`), servidor local
+`npm start`, cuentas de test creadas para la ocasión. Evidencia completa
+con salidas HTTP en `progress/003-login-usuarios.md` (sección T011).
+
+- **Login de 2 cuentas reales** ✅ — `t011-ana` y `t011-bruno` (confirmadas
+  vía admin API; ver bloqueo de config abajo): 200 + cookie, `GET /api/sesion`
+  200 con el usuario.
+- **RLS real / aislamiento** ✅ — A crea movimiento → 201 con su `user_id`
+  (el `WITH CHECK` de la política acepta el INSERT: la guarda de T005
+  funciona contra la base real). A lista/saldo/resumen/CSV: SOLO lo suyo.
+  B: SOLO lo suyo (saldo −50 vs +150 de A). Ninguno ve la fila ajena.
+- **401 sin sesión** ✅ — los 6 endpoints de datos sin cookie → 401.
+- **AC7** ✅ — password erróneo e email inexistente: mismo cuerpo
+  `{"error":"credenciales incorrectas"}` 401.
+- **AC9 logout** ✅ — 204 + cookie expirada; sesión muerta (401 después).
+- **AC11 recuperación completa** ✅ — enlace real generado (admin
+  `generateLink`): params `token, type, redirect_to`; el `token` del enlace
+  funciona como código en `POST /api/recuperar/confirmar` → 204; password
+  vieja → 401; nueva → 200; sesión previa destruida (401).
+- **AC12** ✅ — `POST /api/recuperar` con email existente vs inexistente:
+  idéntico `200 {"ok": true}`. Código falso → 400 «enlace inválido».
+- **AC10 bloqueo real** ✅ — 5 logins fallidos (401×5), el 6.º con la
+  password CORRECTA → `429 {"error":"cuenta bloqueada, reintenta en 15
+  minutos"}`.
+- **AC2 claim real** ✅ — `db.claimHuerfanos` invocado contra la base real:
+  1 fila huérfana reclamada (UPDATE ... WHERE user_id IS NULL vía service
+  key). La fila preexistente quedó asignada a `t011-ana` (ver D4).
+- **Hallazgo corregido en vivo**: el enlace real de Supabase lleva
+  `?token=...` y `reset.html` solo leía `code`/`token_hash` → fix inmediato
+  (commit eea3f0f): ahora acepta los tres formatos.
+
+### Bloqueos de config (no programables desde aquí — decisiones D3/D4)
+
+- **Confirmación de email ACTIVADA** en el proyecto (default). El signUp
+  real crea la cuenta pero NO devuelve sesión → `POST /api/registro`
+  responde 500 (el wrapper espera `data.session`). Por eso las cuentas de
+  test se confirmaron vía admin API. **AC1-live y AC8-live quedan
+  pendientes del toggle** (dashboard: Authentication → Sign In / Providers
+  → Email → «Confirm email» OFF); con la config corregida, registro → 201 +
+  cookie y email duplicado → 400 (ambos probados por la suite con fakes y
+  por el contrato de GoTrue).
+- **Redirect del enlace de reset**: el `redirect_to` del enlace es
+  `http://localhost:3000` (site URL del proyecto); el email real apuntará
+  ahí, no a `/reset.html`. Con el toggle de arriba, ajustar también la
+  plantilla del email de recuperación (dashboard) para apuntar a
+  `http://localhost:3000/reset.html?token={{ .TokenHash }}` — o dejar el
+  site URL con path `/reset.html`. `reset.html` ya acepta `token`/`token_hash`/`code`.
 
 ## Verificación (`verify`)
 
-- Pendiente.
+- En vivo: ver sección anterior (T011). Gate de cierre sobre la rama
+  completa: pendiente (T12 / stage 5).
 
 ## Ship (`ship`)
 
@@ -141,11 +244,23 @@ artefactos: progress ledger, decisions.md (5 entradas), 14 commits.
 | Paso | Duración | Tokens | Interv. humanas | Notas |
 |---|---|---|---|---|
 | Registro | ~5 min | — | 1 | Prompt inicial del dueño |
-| Spec | ~30 min | n/d | ~10 | Incluye enmienda constitución v1.1.0 |
-| Plan | | | | |
-| Tasks | | | | |
-| Desarrollo | | | | |
-| Revisión | | | | |
-| Verificación | | | | |
-| Ship | | | | |
-| **Total** | | | | |
+| Spec | ~40 min | n/d | ~12 | Incluye enmienda constitución v1.1.0 |
+| Plan | ~15 min | n/d | 4 | Incluye ronda de clarify |
+| Tasks | ~10 min | n/d | 0 | Forecast de riesgo con `rsc risk` |
+| Desarrollo | ~4 h 45 min + ~7 h 45 min | n/d + ≈1.9M (subagentes) | ~6 + 1 | Dos sesiones: paso a paso (T001–T004) y autopilot (T005–T011) |
+| Revisión | (dentro de Desarrollo) | (incluidos arriba) | 0 | Panel de 3 por tarea tier 2; ~45 hallazgos en el ledger; 7 should-fix confirmados, todos cerrados |
+| Verificación | ~1 h 15 min (en vivo) | incluidos | 0 | T011 contra Supabase real; 2 bloqueos de config → D3/D4 |
+| Ship | pendiente | — | — | Tier 2: espera aprobación humana explícita |
+| **Total** | ~14 h 45 min | ≈1.9M+ (subagentes) + n/d | ~24 | Sin contar la sesión de ship |
+
+## Estado final del ciclo (2026-11-18)
+
+- **T001–T012 completas** (ver `progress/003-login-usuarios.md`, fuente de
+  verdad). Suite **124/124 verde**.
+- **Pendiente del dueño** (cola de decisiones):
+  - **D3** (blocking, config): desactivar «Confirm email» en el dashboard
+    de Supabase → luego verificar AC1-live y AC8-live (curl, segundos).
+  - **D4** (review-after): la fila preexistente quedó reclamada por la
+    cuenta de test `t011-ana`; opciones documentadas en el ledger.
+  - **Ship** (tier 2, always-human): merge a main espera aprobación
+    explícita del dueño.
