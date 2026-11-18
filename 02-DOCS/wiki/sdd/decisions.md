@@ -350,3 +350,23 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   (`WHERE user_id IS NULL`): el segundo claim no encuentra filas huérfanas
   (el primero ya las adoptó) y devuelve 0. Registro + claim no son
   transaccionales entre sí — aceptable, registrado en los riesgos del plan.
+
+## 2026-11-18 — T008: corrección — la carrera del claim y la atribución (feature: 003-login-usuarios, task: T008)
+
+- **Contexto**: la revisión de ronda 1 (lente correctness, question F2) señaló
+  que la entrada anterior justifica la seguridad de la carrera invocando solo
+  la idempotencia — que impide el doble claim, pero NO garantiza la atribución
+  correcta.
+- **Precisión**: con dos registros concurrentes sobre un sistema vacío, ambos
+  ven 0 usuarios y ambos intentan el claim. El `WHERE user_id IS NULL` hace
+  que solo UNO adopte la fila — pero puede ser el SEGUNDO en registrarse si su
+  UPDATE commitea primero en la base. La letra de AC2 («la primera cuenta
+  hereda») podría violarse en esa ventana.
+- **Decisión**: se mantiene el diseño (no transaccional, single-owner piloto).
+  La probabilidad es despreciable en este piloto: un solo dueño real, y la
+  ventana exige dos registros casi simultáneos sobre un sistema vacío. El
+  riesgo ya estaba aceptado en el plan (§7: «riesgo residual nulo en piloto
+  single-owner»); esta entrada solo corrige el RAZONAMIENTO, no el trade-off.
+- **Why**: una justificación imprecisa en el log de decisiones es deuda — un
+  futuro lector podría reutilizar «idempotente ⇒ seguro» en un contexto
+  multi-owner, donde la atribución sí importa.
