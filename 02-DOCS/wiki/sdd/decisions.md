@@ -314,3 +314,15 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
   "Invalid login credentials" para credenciales incorrectas), y un branch
   explícito en el catch de login que devuelve 401 genérico sin tocar el
   contador. AC7 se preserva: mismo 401 y mismo cuerpo exista o no el email.
+
+## 2026-11-18 — Feature 003, T007 ronda 2: done-check cubre los tests D2
+
+- **Decisión**: el done-check de T007 se enmienda a `-t "recuperar|D2"` (regex)
+  en lugar de `-t "recuperar"`. El filtro original se saltaba los 2 tests del
+  fix D2 (describe sin "recuperar" en el nombre), dejando un mutante
+  (AuthNoDisponible llamando registrarFallo) sobrevivir el done-check.
+- **Por qué no renombrar el describe D2**: D2 trata de login/bloqueo, no de
+  recuperar; renombrar para cazar el filtro sería distorsión semántica.
+- **Conteo**: el comando enmendado pasa 10 tests (8 recuperación + 2 D2), no
+  9 como se anticipó — el test nuevo de F1 (camino de error de AC12) también
+  coincide con "recuperar". El filtro es correcto; el conteo creció con F1.
