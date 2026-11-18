@@ -502,6 +502,39 @@
 - D2 (cola de decisiones) queda CERRADA por este fix: los errores internos
   ya no cuentan como fallos de bloqueo, con guardas automatizadas.
 
+## T010 — 2026-11-18
+- status: built
+- done-check verificado por el implementador: `reset.html` 200 con curl;
+  node --check de ambos scripts; contratos contra servidor local (401 sin
+  cookie, logout 204 + cookie expirada, confirmar con código falso → 400).
+- files: `public/reset.html` (nuevo), `public/index.html` (gating +
+  logout) · commit worktree 222afcd → cherry-pick **3f23f99**. Suite 123/123
+  (no añade tests; §5 scopea el frontend fuera de la suite, en vivo T011).
+- decisiones: reset.html lee `code` con fallback `token_hash` de la URL
+  (compatibilidad con la config de redirect que se fija en T011); gating
+  con GET /api/sesion al cargar, 401 en cualquier llamada de datos →
+  redirect a login; logout redirige siempre.
+- risk: tier 1 (public/, sin src/) — revisor único de contexto fresco.
+
+## T010 — cierre ronda 2 — 2026-11-18
+- status: **complete**
+- Ronda 1 (revisor tier 1): spec compliance PASS (gating completo incluido
+  CSV, logout siempre redirige, XSS seguro vía textContent, P8 cumplido);
+  3 hallazgos: tag `</script>` duplicado en index.html (should-fix
+  degradado a question por el campo line con rango), `const confirm`
+  shadoweando `window.confirm`, redirect redundante en el catch de iniciar().
+- Fix de ronda 2 (mecánico, por el orquestador): **84fa5a2** — tag
+  duplicado eliminado, variable renombrada a `confirmacion`, catch
+  reescrito. Scripts verificados sintácticamente (un solo `<script>` por
+  archivo, sintaxis OK); suite 123/123.
+- Ronda 2 (revisor tier 1, solo delta): **PASS** — los 3 hallazgos
+  cerrados, sin regresiones; 1 nit nuevo (comentario del catch inexacto:
+  los 401 también llegan al catch porque getJSON lanza tras redirigir).
+  Nit corregido al vuelo en **c7ed58b**.
+- Controls: tests ✅ 123/123 · build ✅ (estático; scripts validados) ·
+  security ✅ (XSS revisado: textContent; sin recursos externos) ·
+  traceability ✅ (AC6/AC9/AC11 a nivel de página; conductual en vivo T011).
+
 ## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
 - **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
   autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,
