@@ -299,6 +299,84 @@
   nivel API en login-api.test.js; conductual de página en T011).
 - Panel registrado en el ledger (ronda 1 de 3, e94ba89).
 
+## T005 — 2026-11-18
+- status: built (review pendiente)
+- red: 11 tests nuevos en `test/login-api.test.js` (describe «T005») fallando
+  por las razones correctas: los 6 endpoints de datos devolvían 200/201/204
+  en vez de 401; el test de aislamiento recibía 2 movimientos en vez de 1
+  (singleton sin scope); saldo/resumen/CSV computaban sobre el set global;
+  DELETE cross-user devolvía 204 en vez de 404.
+- green: `dbPara(tokens)` en `src/db.js` (fábrica de repo scoped con cliente
+  Supabase + JWT del usuario en Authorization); `requireSesion` adjunta
+  `req.dbCliente` + `req.usuario`; los 6 endpoints de datos tras el gating,
+  handlers sobre `req.dbCliente`. Tests existentes (api/csv/smoke/session)
+  actualizados con sesión; mismos asserts.
+- files: `src/db.js`, `src/session.js`, `src/app.js`, `test/login-api.test.js`,
+  `test/api.test.js`, `test/csv-api.test.js`, `test/smoke.test.js`,
+  `test/session.test.js` · commit worktree a90ae32 → cherry-pick **9630ab4**.
+  Suite 102/102.
+- risk: tier 2 (clase auth) — panel de 3 despachado (ronda 1).
+
+## T005 — ronda 1 de revisión — 2026-11-18
+- Panel: security **PASS** (6 endpoints gateados, handlers 100% sobre
+  req.dbCliente, sin fuga de secrets/internals, tests capaces de fallar) ·
+  correctness **1 should-fix** + 1 nit · tests **PASS** + 2 nits.
+- Consolidate: 4 únicos. F1 [should-fix] verificado por finding-verifier →
+  **CONFIRMED con trazado contra la base real** (pg_policies: INSERT con
+  `WITH CHECK (auth.uid() = user_id)`; pg_trigger vacío; user_id sin default):
+  `crearMovimiento` del repo scoped no seteaba `user_id` → todo INSERT
+  autenticado sería rechazado por RLS → 500 en vez de 201 (AC3 roto en
+  producción). F2 nit: import muerto de `db` en app.js. F3 nit: mensaje 401
+  sin pinear (mutante sobrevive). F4 nit: aserciones negativas
+  order-dependent.
+
+## T005 — ronda 2 (fixes F1–F4) — 2026-11-18
+- Fix integrado: **2ae6bb7** — `dbPara(tokens, usuario)` + `repoPara(cliente,
+  usuario)`; `crearMovimiento` del repo scoped inserta
+  `user_id: usuario.id` (defensa en profundidad: RLS WITH CHECK sigue
+  validando el valor contra el JWT); `requireSesion` pasa `data.usuario`;
+  import muerto eliminado; pin `toEqual({error: 'No autenticado'})` en los
+  6 tests de 401 (mutante corrido: 6 tests mueren); tests de resumen/CSV
+  autocontenidos. RED honesto (test F1 falló contra el código sin fix).
+  Auth de la decisión en decisions.md (fix de aplicación vs trigger de
+  base). Suite 103/103.
+
+## T005 — ronda 2 de revisión — 2026-11-18
+- Panel (diff 2ae6bb7): security **PASS** (7 vectores: sin inyección de
+  user_id desde el body — doble destrucción de campos; sin suplantación;
+  RLS frontera intacta) · correctness **PASS** (8 ataques: fix de clase,
+  singleton preservado, pins exactos) · tests **1 should-fix**.
+- Consolidate: 1 único, verificado → **CONFIRMED con reproducción**: el
+  test F1 ejerce el MOCK de src/db.js, no el `crearMovimiento` real —
+  mutante (quitar la línea del user_id) sobrevive la suite COMPLETA
+  (103/103 verde). Clase mock-swallowing-logic-under-test; la regresión F1
+  sin guarda automatizada (AC3).
+
+## T005 — ronda 3 (fix, ÚLTIMA del presupuesto) — 2026-11-18
+- Fix integrado: **9b73019** — `test/db-scoped.test.js` nuevo (3 tests):
+  mockea el SDK `@supabase/supabase-js` (la frontera), NO el módulo;
+  `vi.hoisted` setea la env var de test; import dinámico de src/db.js REAL
+  en beforeAll. Guarda: (1) insert scoped incluye `user_id: usuario.id` +
+  5 campos; (2) singleton NO incluye user_id (bypass RLS preservado);
+  (3) campos intactos. RED honesto: mutante aplicado → test 1 muere
+  (`user_id: 42` faltante); revertido → verde. Suite **106/106**.
+
+## T005 — cierre ronda 3 — 2026-11-18
+- status: **complete**
+- Panel de ronda 3 (diff 9b73019): security **PASS** (6 vectores: sin red
+  ni secrets, env idempotente sin contaminación cruzada) · correctness
+  **PASS** (8 ataques: módulo real ejercido sin interceptación, fake fiel
+  a la cadena insert().select().single(), orden hoisted/import estable) ·
+  tests **PASS** + 1 nit (test 3 redundante, subsumido por el toEqual del
+  test 1 — anotado, sin fix: triangulación inofensiva). Cero should-fix,
+  cero blockers. El mutante de ronda 2 muere (verificado por el panel).
+- Controls: tests ✅ 106/106 (10 archivos) · build ✅ (sin paso de build;
+  la suite carga todos los módulos) · security ✅ (lente del panel) ·
+  traceability ✅ (AC3 con guarda real en db-scoped.test.js; AC4/AC5 tests
+  de aislamiento por usuario; AC6 los 6 tests de 401 con pin de mensaje).
+- Nota: la verificación CONDUCTUAL de RLS (usuario real ve solo lo suyo)
+  sigue siendo T011 en vivo, como manda el plan §5.
+
 ## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
 - **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
   autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,
