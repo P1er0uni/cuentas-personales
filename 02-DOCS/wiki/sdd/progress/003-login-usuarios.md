@@ -436,6 +436,72 @@
   registrada en decisions.md. El dueño lo lee en review-after; si prefiere
   (b), se revierte ese bloque de T007.
 
+## T007 — 2026-11-18
+- status: built
+- red: 7 tests de recuperación fallando con 404 (endpoints inexistentes) →
+  green. Los 2 tests del fix D2 pasaron desde el inicio (el catch genérico
+  ya hacía lo correcto) — quedan como guardas de regresión.
+- green: `POST /api/recuperar` (200 `{"ok": true}` SIEMPRE, exista o no el
+  email, incluso si el servicio falla — AC12 estricto) y
+  `POST /api/recuperar/confirmar` (204 + `sesion.destruirTodasDe(usuario.id)`
+  | 400 con errores). Wrappers en src/auth.js:
+  `pedirRecuperacion` (resetPasswordForEmail) y `confirmarRecuperacion`
+  (verifyOtp type recovery + updateUser) — devuelve `{ usuario }` para poder
+  destruir sesiones (decisión en decisions.md). Fix D2 (hallazgo de la cola
+  de decisiones): `AuthNoDisponible` para errores internos de Supabase →
+  401 genérico SIN `registrarFallo` (AC7 intacto, AC10: errores del
+  servidor no cuentan como fallos del usuario).
+- files: `src/auth.js`, `src/app.js`, `test/login-api.test.js`,
+  `decisions.md` (2 entradas) · commit worktree 0b8f2d6 → cherry-pick
+  **c21132d**. Suite 119/119.
+- risk: tier 2 (clase auth) — panel de 3 (ronda 1). Nota operativa: los
+  lentes correctness y tests se despacharon secuencialmente tras un stall
+  del watchdog por concurrencia de mutantes sobre el árbol.
+
+## T007 — ronda 1 de revisión — 2026-11-18
+- Panel: correctness **PASS** (12 ataques) + 2 questions + 1 nit · security
+  **PASS** (8 vectores) + 2 questions · tests **2 should-fix** + 1 question
+  + 1 nit (6 mutantes corridos).
+- Consolidate: 8 únicos; los 2 should-fix verificados por finding-verifier
+  (secuencial) → **2 CONFIRMADOS con reproducción**: F1 — el catch de
+  /api/recuperar era código muerto en la suite (fake nunca lanzaba; mutante
+  404-revelador sobrevivía 119/119 — AC12 sin guarda en el camino de
+  error); F2 — el done-check `-t "recuperar"` se saltaba los 2 tests D2 del
+  mismo commit (mutante registrarFallo-en-AuthNoDisponible pasaba el
+  done-check y rompía la suite).
+- Questions/nits anotados: fragilidad del regex `/invalid login
+  credentials/i` (si Supabase cambia el texto, el bloqueo se desactiva
+  silenciosamente — verificación en vivo T011); half-state verifyOtp/
+  updateUser (OTP quemado sin cambio de password — inherente al flujo
+  Supabase); error transitorio mapeado a «enlace inválido»; timing
+  side-channel en /api/recuperar (canal de tiempo, no de respuesta —
+  non-goal); sin rate limit en confirmar (non-goal de la spec); test AC11
+  de integración no verifica supervivencia de sesiones ajenas (cubierto por
+  unit test de session).
+
+## T007 — ronda 2 (fixes F1/F2) — 2026-11-18
+- Fix integrado: **271379c** — fake `pedirRecuperacion` lanza para
+  `smtpfallo@` (fallo de servicio, no email inexistente); test nuevo: 200
+  `{"ok": true}` EXACTO aunque el servicio falle (guard con RED honesto:
+  mutante 404 → test muere → revertido). Done-check de T007 enmendado en el
+  plan a `-t "recuperar|D2"` (10 passed | 27 skipped; precedente T001).
+  Decisión del conteo y de no renombrar el describe D2 en decisions.md.
+  Suite 120/120.
+
+## T007 — cierre ronda 2 — 2026-11-18
+- status: **complete**
+- Panel de ronda 2 (diff 271379c): security **PASS** (guard mata 3
+  mutantes del catch; sin fuga del mensaje crudo; regex del done-check sin
+  huecos) · correctness **PASS** (9 ataques: aserciones exactas, fake lanza
+  por la razón correcta, enmienda fiel, nada debilitado) · tests **PASS**
+  (2 mutantes corridos → ambos mueren; filtro exacto sin fugas; test no
+  vacuo). Cero hallazgos en los tres lentes.
+- Controls: tests ✅ 120/120 (10 archivos) · build ✅ · security ✅ (lente
+  del panel) · traceability ✅ (AC11/AC12 con guarda del camino de error;
+  AC10-D2 con done-check que cubre sus tests; conductual en vivo en T011).
+- D2 (cola de decisiones) queda CERRADA por este fix: los errores internos
+  ya no cuentan como fallos de bloqueo, con guardas automatizadas.
+
 ## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
 - **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
   autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,
