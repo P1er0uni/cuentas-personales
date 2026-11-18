@@ -265,6 +265,40 @@
 - Controls: tests ✅ 91/91 · build ✅ · security ✅ (lente del panel) ·
   traceability ✅ (AC1, AC7, AC8, AC9 a nivel de gate de T004).
 
+## T009 — 2026-11-18
+- status: built (review pendiente)
+- done-check verificado por el implementador: `npm start` + curl →
+  `login.html` 200; `node --check` del script inline OK; checklist manual
+  documentado (labels visibles con `<label for>`, teclado con tabs ARIA +
+  focus visible, modo oscuro con las mismas variables que index.html,
+  mapeo de las formas de error 400 `{"errores": [...]}` y 401 `{"error": "..."}`).
+- files: `public/login.html` (nuevo, 266 líneas) · commit worktree 5a44152 →
+  cherry-pick **e94ba89**. Suite 102/102 (no añade tests; §5 scopea el
+  frontend fuera de la suite automatizada, verificación en vivo en T011).
+- decisiones de diseño: tabs Acceso/Registro con roles ARIA
+  tablist/tab/tabpanel; `getJSON` unificado que detecta `errores[]` vs
+  `error` string (más completo que el de index.html); enlace a `reset.html`
+  ya presente (T010 lo materializa).
+- risk: tier 2 (clase auth — login.html) — panel de 3 despachado (ronda 1).
+
+## T009 — cierre ronda 1 — 2026-11-18
+- status: **complete**
+- Panel de ronda 1 (diff e94ba89): security **PASS** (8 vectores: textContent
+  sin XSS, same-origin, cookie HttpOnly no tocada, cero dependencias externas)
+  · correctness **PASS** (12 ataques; contratos 400/401 bien consumidos,
+  redirección correcta, ids consistentes) · tests **PASS** (evidencia del
+  done-check verificada por curl + inspección mecánica de los correlatos
+  a11y; suite 102/102 intacta). Cero should-fix, cero blockers.
+- Consolidate: 2 questions únicos — F1: el done-check de T009 under-nombra la
+  forma de error de AC7 (`{"error": "..."}` singular; la página cubre ambas
+  formas, hueco de wording del plan, no de código); F2: enlace a `reset.html`
+  es 404 hasta que T010 aterrice (referencia adelantada esperada por el
+  orden del plan). Ambos advisory, ninguno bloquea.
+- Controls: tests ✅ 102/102 · build ✅ (estático sin build; node --check del
+  script) · security ✅ (lente del panel) · traceability ✅ (AC1/AC7/AC8 a
+  nivel API en login-api.test.js; conductual de página en T011).
+- Panel registrado en el ledger (ronda 1 de 3, e94ba89).
+
 ## Estado de sesión — 2026-11-17 (cierre por decisión del dueño)
 - **Completas**: T001 (migración), T002 (bloqueo, 4 rondas — la 4.ª
   autorizada por el dueño vía D1), T003 (sesión), T004 (endpoints de auth,
