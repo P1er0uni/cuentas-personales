@@ -248,3 +248,26 @@ Toda decisión significativa: fecha, opciones consideradas, elección y por qué
 - Por qué: la cota protege contra DoS de memoria, pero no a costa de regalar
   el bloqueo ni de perder fallos legítimos; el crecimiento temporal acotado
   por la ventana de bloqueo es aceptable y ahora es real.
+
+## 2026-11-18 — user_id en el insert desde la sesión vs trigger de base (feature: 003-login-usuarios, task: T005)
+
+- Contexto: `crearMovimiento` del repositorio scoped (`dbPara`) hacía
+  `.insert({ tipo, monto, categoria, fecha, descripcion })` sin `user_id`.
+  Con el cliente scoped, el INSERT queda sujeto a la política RLS
+  `movimientos_insert_propios` con `WITH CHECK (auth.uid() = user_id)`; no hay
+  trigger ni default que pueble `user_id` → NULL → el check falla → PostgREST
+  rechaza → 500 en vez del 201 contratado. Todo INSERT autenticado roto en
+  producción.
+- Options:
+  1. Fix en capa de aplicación: `dbPara` recibe la identidad del usuario
+     (`dbPara(tokens, usuario)`) y `crearMovimiento` del repo scoped incluye
+     `user_id: usuario.id` en el insert. RLS sigue validando el valor.
+  2. Trigger de base: `BEFORE INSERT ON movimientos SET user_id = auth.uid()`
+     para que la columna se pueble automáticamente desde el JWT.
+- Decision: opción 1 (fix en capa de aplicación).
+- Why: el fix de aplicación es testeable con los fakes en memoria existentes
+  sin requerir migración de base ni acceso a Supabase; el RED/GREEN se cierra
+  en la suite local. RLS sigue siendo la frontera real: si el `user_id`
+  enviado no coincide con el JWT, `WITH CHECK` lo rechaza igual (defensa en
+  profundidad). El trigger (opción 2) queda como alternativa futura si se
+  quiere un cinturón extra a nivel de base.
