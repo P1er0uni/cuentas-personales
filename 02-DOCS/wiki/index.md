@@ -13,6 +13,7 @@
 | Plan 003 — Login de usuarios | `02-DOCS/wiki/sdd/plans/003-login-usuarios.md` |
 | Análisis 003 — Login de usuarios (gate pre-implement, PASS) | `02-DOCS/wiki/sdd/analysis/003-login-usuarios.md` |
 | Revisión 001 — Exportar movimientos a CSV (closing, 2 rondas) | `02-DOCS/wiki/sdd/reviews/001-exportar-csv.md` |
+| Informe de métricas 003 — Login de usuarios (tokens, tiempos, costo) | `02-DOCS/wiki/sdd/reports/003-login-usuarios-metricas.md` |
 | Perfil de usuario del harness | `02-DOCS/wiki/harness/user-profile.md` |
 | Decisiones del harness | `02-DOCS/wiki/harness/decisions.md` |
 | Plan de instalación del harness | `02-DOCS/wiki/harness/installation-plan.md` |
